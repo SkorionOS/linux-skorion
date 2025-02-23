@@ -8,7 +8,7 @@
 pkgbase=linux-chimeraos
 pkgver=6.13.4.skf1
 _pkgver=6.13.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux Stable"
 arch=(x86_64)
 url="https://kernel.org/"
@@ -151,13 +151,6 @@ prepare() {
   # cd ..
   cd ${_srcname}
 
-  echo "Setting version..."
-  echo "-$pkgrel" > localversion.10-pkgrel
-  echo "${pkgbase#linux}" > localversion.20-pkgname
-  make defconfig
-  make -s kernelrelease > version
-  make mrproper
-
   local src
   for src in "${source[@]}"; do
     src="${src%%::*}"
@@ -170,6 +163,13 @@ prepare() {
     echo "Applying patch $src..."
     patch -Np1 < "../$src"
   done
+
+  echo "Setting version..."
+  echo "-$pkgrel" > localversion.10-pkgrel
+  echo "${pkgbase#linux}" > localversion.20-pkgname
+  make defconfig
+  make -s kernelrelease > version
+  make mrproper
 
   echo "Setting config..."
   cp ../config .config
