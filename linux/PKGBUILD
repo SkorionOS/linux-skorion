@@ -55,6 +55,7 @@ source=(
   "A005-ROG-ALLY-NCT6775-PLATFORM.patch"
   # "A006-vrr-1.patch::https://gitlab.com/evlaV/linux-integration/-/commit/7fbd09a1b740ed016359919003947d05f054ad6b.patch"
   # "A007-vrr-2.patch::https://gitlab.com/evlaV/linux-integration/-/commit/5f96bbb94f4dc884007a22ca3e289215064d2065.patch"
+  A008-Add-EXTRAVERSION.patch
   0001-drm-panel-orientation-quirks.patch
   0002-drm-amdgpu-always-allocate-cleared-VRAM-for-GEM-allo.patch
   0006-Ayaneo-geek-headset-patch.patch
@@ -101,6 +102,7 @@ sha256sums=('SKIP'
   'cfcd5c177423df8b7b98b0500fe7ab0757f895ed945c33e205963f0069c7a3be' # A005-ROG-ALLY-NCT6775-PLATFORM.patch
   # 'ed290b80935918602e2788f90d6efc4302755ab0679673dd1f5609d65f2b0a1d' # A006-vrr-1.patch
   # 'bfd057f33cd68dd3b69dc64275b5f5dae0b5e7ef53fdccab6c896c734b1a8acb' # A007-vrr-2.patch
+  '25dfe926d267297bb0b4b80361022ed23d46af429ae7a20aeca18aee04d4b29e' # A008-Add-EXTRAVERSION.patch
   'e40db9de280c70d83832cdd0768348de170005cdd3ba233b498db5f81dd24fa1' # 0001-drm-panel-orientation-quirks.patch
   '71d093c5c95d7bd594dd8dcd804eabe2f6b95398c519ded42b7d8994f384e4d8' # 0002-drm-amdgpu-always-allocate-cleared-VRAM-for-GEM-allo.patch
   '02f5eaede065b7d68ccf469c9f54eab3ce3f0d852624a3430d83bcd6e2bd7dbb' # 0006-Ayaneo-geek-headset-patch.patch
