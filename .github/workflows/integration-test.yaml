@@ -28,8 +28,8 @@ jobs:
           mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm bc cpio pahole python kmod
+          pacman -Syu --noconfirm bc cpio pahole python kmod git rust rust-bindgen rust-src graphviz imagemagick python-sphinx python-yaml
       - name: Prepare sources
         shell: bash
         run: |
-          su build bash -c "cd /home/build/linux && makepkg --nobuild"
+          su build bash -c "cd /home/build/linux && makepkg -fCcs --nobuild"

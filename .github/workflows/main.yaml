@@ -47,12 +47,12 @@ jobs:
           mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm bc cpio pahole python kmod
+          pacman -Syu --noconfirm bc cpio pahole python kmod git rust rust-bindgen rust-src graphviz imagemagick python-sphinx python-yaml
       - name: Build linux-chimeraos package
         id: build-kernel-package
         shell: bash
         run: |
-          su build bash -c "cd /home/build/linux && MAKEFLAGS=-j$(nproc) makepkg"
+          su build bash -c "cd /home/build/linux && MAKEFLAGS=-j$(nproc) makepkg -fCcs"
           . /home/build/linux/PKGBUILD
           full_version=${pkgver}-${pkgrel}
           echo "full_version=$full_version" >> "$GITHUB_OUTPUT"
