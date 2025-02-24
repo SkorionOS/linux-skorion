@@ -1,0 +1,1331 @@
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 1/12] hwmon: (oxp-sensors) Distinguish the X1 variants
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:12 +0100
+Message-Id: <20250222161824.172511-2-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, the oxp-sensors driver fuzzy matches the X1 variants. Luckily,
+X1 and X1 mini share most hardware features so this works. However, they
+are completely different product lines, and there is an expectation that
+OneXPlayer will release more devices in the X1 line that may have
+differences.
+
+Therefore, distinguish the 3 devices that currently exist in the market.
+These are the OneXPlayer X1 AMD and Intel variants, and the X1 mini which
+only has an AMD variant. As far as registers go, all three support the
+current driver functionality.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 83730d931824..5a4230ad3757 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -205,7 +205,28 @@ static const struct dmi_system_id dmi_table[] = {
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
+-			DMI_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1 A"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1 i"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1 mini"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1Pro"),
+ 		},
+ 		.driver_data = (void *)oxp_x1,
+ 	},
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 2/12] hwmon: (oxp-sensors) Add all OneXFly variants
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:13 +0100
+Message-Id: <20250222161824.172511-3-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, the driver only has the F1 OneXFly variant, which was based
+on the 7000 AMD platform. Add its special editions: F1 EVA-01, F1 OLED.
+F1 OLED might have been a dev unit, but it is supported by OneXConsole
+with the same features so add it. Then add the F1L variant which is
+based on the 8000 AMD platform and the F1Pro and its special edition
+EVA-02.
+
+One might ask why not just fuzzy match. Well, EVA-02 is a variant of
+F1Pro which is a Strix Point handheld, but does not have F1Pro in its
+name. This makes it risky to fuzzy match, as special variants in the
+future from different platforms might not have the same feature set
+or registers.
+
+By happenstance, all current devices use the same registers. For the
+charge limitting feature on this series, only F1Pro/X1 (AMD) were
+released with it, but OneXPlayer is providing bios updates for F1, F1L,
+X1 Mini units that use the same register, so treat all of them the same.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 5a4230ad3757..f7a64fbc8f33 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -188,6 +188,41 @@ static const struct dmi_system_id dmi_table[] = {
+ 		},
+ 		.driver_data = (void *)oxp_fly,
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1 EVA-01"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1 OLED"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1L"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1Pro"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1 EVA-02"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 3/12] ABI: testing: sysfs-class-power: add BypassS0
+ charge_type
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:14 +0100
+Message-Id: <20250222161824.172511-4-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+OneXPlayer devices support a conditional bypass type, in which the
+device will only perform the battery bypass while in the S0 state.
+Therefore, add BypassS0, which is a state in which the device
+conditionally bypasses the battery only in the S0 state.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ Documentation/ABI/testing/sysfs-class-power | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/ABI/testing/sysfs-class-power b/Documentation/ABI/testing/sysfs-class-power
+index 2a5c1a09a28f..117731652ab0 100644
+--- a/Documentation/ABI/testing/sysfs-class-power
++++ b/Documentation/ABI/testing/sysfs-class-power
+@@ -404,6 +404,10 @@ Description:
+ 			The charger bypasses the charging path around the
+ 			integrated converter allowing for a "smart" wall
+ 			adaptor to perform the power conversion externally.
++		BypassS0:
++			Same as Bypass, but the device automatically enables
++			bypass only while on the S0 state and disables it when
++			it powers off or during sleep.
+ 
+ 		Access: Read, Write
+ 
+@@ -412,7 +416,7 @@ Description:
+ 
+ 		Valid values:
+ 			      "Unknown", "N/A", "Trickle", "Fast", "Standard",
+-			      "Adaptive", "Custom", "Long Life", "Bypass"
++			      "Adaptive", "Custom", "Long Life", "Bypass", "BypassS0"
+ 
+ What:		/sys/class/power_supply/<supply_name>/charge_types
+ Date:		December 2024
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 4/12] hwmon: (oxp-sensors) Add charge threshold and
+ bypass to OneXPlayer
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:15 +0100
+Message-Id: <20250222161824.172511-5-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+With the X1 (AMD), OneXPlayer added a charge limit and charge bypass to
+their devices. Charge limit allows for choosing an arbitrary battery
+charge setpoint in percentages. Charge bypass allows to instruct the
+device to stop charging either when its on or always.
+
+This feature was then extended for the F1Pro as well. OneXPlayer also
+released BIOS updates for the X1 Mini, X1 (Intel), and F1 devices that
+add support for this feature. Therefore, enable it for all F1 and
+X1 devices.
+
+Add both of these under the standard sysfs battery endpoints for them,
+by looking for the battery. OneXPlayer devices have a single battery.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 206 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 206 insertions(+)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index f7a64fbc8f33..f8ffc78deedd 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -26,6 +26,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/processor.h>
++#include <acpi/battery.h>
+ 
+ /* Handle ACPI lock mechanism */
+ static u32 oxp_mutex;
+@@ -89,6 +90,35 @@ static enum oxp_board board;
+ 
+ #define OXP_TURBO_RETURN_VAL           0x00 /* Common return val */
+ 
++#define OXP_X1_CHARGE_LIMIT_REG      0xA3 /* X1 charge limit (%) */
++#define OXP_X1_CHARGE_BYPASS_REG     0xA4 /* X1 bypass charging */
++
++#define OXP_X1_CHARGE_BYPASS_MASK_S0 0x01
++/*
++ * Cannot control S3, S5 individually.
++ * X1 Mask is 0x0A, OneXFly F1Pro is just 0x02
++ * but the extra bit on the X1 does nothing.
++ */
++#define OXP_X1_CHARGE_BYPASS_MASK_S3S5 0x02
++
++enum charge_type_value_index {
++	CT_OFF,
++	CT_S0,
++	CT_S5,
++};
++
++static u8 charge_type_values_x1[] = {
++	[CT_OFF] = 0x00,
++	[CT_S0] = OXP_X1_CHARGE_BYPASS_MASK_S0,
++	[CT_S5] = OXP_X1_CHARGE_BYPASS_MASK_S0 | OXP_X1_CHARGE_BYPASS_MASK_S3S5,
++};
++
++static const char * const charge_type_strings[] = {
++	[CT_OFF] = "Standard",
++	[CT_S0] = "BypassS0",
++	[CT_S5] = "Bypass",
++};
++
+ static const struct dmi_system_id dmi_table[] = {
+ 	{
+ 		.matches = {
+@@ -436,6 +466,177 @@ static ssize_t tt_toggle_show(struct device *dev,
+ 
+ static DEVICE_ATTR_RW(tt_toggle);
+ 
++/* Callbacks for turbo toggle attribute */
++static bool charge_control_supported(void)
++{
++	switch (board) {
++	case oxp_x1:
++	case oxp_fly:
++		return 1;
++	default:
++		break;
++	}
++	return 0;
++}
++
++static ssize_t charge_type_store(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
++{
++	u64 val, reg;
++	int ret;
++
++	ret = __sysfs_match_string(charge_type_strings,
++				   ARRAY_SIZE(charge_type_strings), buf);
++	if (ret < 0)
++		return ret;
++
++	switch (board) {
++	case oxp_x1:
++	case oxp_fly:
++		val = charge_type_values_x1[ret];
++		reg = OXP_X1_CHARGE_BYPASS_REG;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret = write_to_ec(reg, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static ssize_t charge_type_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	int ret;
++	u8 reg;
++	long val;
++	const u8 *vals;
++	char *str;
++
++	switch (board) {
++	case oxp_x1:
++	case oxp_fly:
++		vals = charge_type_values_x1;
++		reg = OXP_X1_CHARGE_BYPASS_REG;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret = read_from_ec(reg, 1, &val);
++	if (ret < 0)
++		return ret;
++
++	str = (char *) charge_type_strings[0];
++	for (ret = 0; ret < ARRAY_SIZE(charge_type_strings); ret++) {
++		if (val == vals[ret]) {
++			str = (char *) charge_type_strings[ret];
++			break;
++		}
++	}
++
++	return sysfs_emit(buf, "%s\n", str);
++}
++
++static DEVICE_ATTR_RW(charge_type);
++
++static ssize_t charge_control_end_threshold_store(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
++{
++	u64 val, reg;
++	int ret;
++
++	ret = kstrtou64(buf, 10, &val);
++	if (ret < 0)
++		return ret;
++
++	if (val > 100)
++		return -EINVAL;
++
++	switch (board) {
++	case oxp_x1:
++	case oxp_fly:
++		reg = OXP_X1_CHARGE_LIMIT_REG;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret = write_to_ec(reg, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static ssize_t charge_control_end_threshold_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	int ret;
++	u8 reg;
++	long val;
++
++	switch (board) {
++	case oxp_x1:
++	case oxp_fly:
++		reg = OXP_X1_CHARGE_LIMIT_REG;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret = read_from_ec(reg, 1, &val);
++	if (ret < 0)
++		return ret;
++
++	return sysfs_emit(buf, "%ld\n", val);
++}
++
++static DEVICE_ATTR_RW(charge_control_end_threshold);
++
++static int oxp_battery_add(struct power_supply *battery, struct acpi_battery_hook *hook)
++{
++	/* OneXPlayer devices only have one battery. */
++	if (strcmp(battery->desc->name, "BAT0") != 0 &&
++	    strcmp(battery->desc->name, "BAT1") != 0 &&
++	    strcmp(battery->desc->name, "BATC") != 0 &&
++	    strcmp(battery->desc->name, "BATT") != 0)
++		return -ENODEV;
++
++	if (device_create_file(&battery->dev,
++	    &dev_attr_charge_control_end_threshold))
++		return -ENODEV;
++
++	if (device_create_file(&battery->dev,
++	    &dev_attr_charge_type)) {
++		device_remove_file(&battery->dev,
++				&dev_attr_charge_control_end_threshold);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int oxp_battery_remove(struct power_supply *battery, struct acpi_battery_hook *hook)
++{
++	device_remove_file(&battery->dev,
++			   &dev_attr_charge_control_end_threshold);
++	device_remove_file(&battery->dev,
++			   &dev_attr_charge_type);
++	return 0;
++}
++
++static struct acpi_battery_hook battery_hook = {
++	.add_battery = oxp_battery_add,
++	.remove_battery = oxp_battery_remove,
++	.name = "OneXPlayer Battery",
++};
++
+ /* PWM enable/disable functions */
+ static int oxp_pwm_enable(void)
+ {
+@@ -753,6 +954,9 @@ static int __init oxp_platform_init(void)
+ 		platform_create_bundle(&oxp_platform_driver,
+ 				       oxp_platform_probe, NULL, 0, NULL, 0);
+ 
++	if (charge_control_supported())
++		battery_hook_register(&battery_hook);
++
+ 	return PTR_ERR_OR_ZERO(oxp_platform_device);
+ }
+ 
+@@ -760,6 +964,8 @@ static void __exit oxp_platform_exit(void)
+ {
+ 	platform_device_unregister(oxp_platform_device);
+ 	platform_driver_unregister(&oxp_platform_driver);
++	if (charge_control_supported())
++		battery_hook_unregister(&battery_hook);
+ }
+ 
+ MODULE_DEVICE_TABLE(dmi, dmi_table);
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 5/12] hwmon: (oxp-sensors) Rename ec group to tt_toggle
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:16 +0100
+Message-Id: <20250222161824.172511-6-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, the EC group is used for the turbo button. However, the next
+patch in the series adds support for the LED button in X1 devices, which
+is only applicable for X1 devices. Therefore, rename it to prepare for
+adding the second group.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index f8ffc78deedd..1c01636582d7 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -884,18 +884,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
+ 	NULL,
+ };
+ 
+-static struct attribute *oxp_ec_attrs[] = {
++static struct attribute *oxp_tt_toggle_attrs[] = {
+ 	&dev_attr_tt_toggle.attr,
+ 	NULL
+ };
+ 
+-static struct attribute_group oxp_ec_attribute_group = {
++static struct attribute_group oxp_tt_toggle_attribute_group = {
+ 	.is_visible = tt_toggle_is_visible,
+-	.attrs = oxp_ec_attrs,
++	.attrs = oxp_tt_toggle_attrs,
+ };
+ 
+ static const struct attribute_group *oxp_ec_groups[] = {
+-	&oxp_ec_attribute_group,
++	&oxp_tt_toggle_attribute_group,
+ 	NULL
+ };
+ 
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 6/12] hwmon: (oxp-sensors) Add turbo led support to X1
+ devices
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:17 +0100
+Message-Id: <20250222161824.172511-7-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+The X1 and X1 mini lineups feature an LED nested within their turbo
+button. When turbo takeover is not enabled, the turbo button allows
+the device to switch from 18W to 25W TDP. When the device is in the
+25W TDP mode, the LED is turned on.
+
+However, when we engage turbo takeover, the turbo led remains on its
+last state, which might be illuminated and cannot be currently
+controlled. Therefore, add the register that controls it under sysfs,
+to allow userspace to turn it off once engaging turbo takeover and
+then control it as they wish.
+
+As part of researching this topic, I verified that other OneXPlayer
+devices do not have a turbo led, which makes this feature only
+applicable to X1 and X1 mini devices.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 84 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 1c01636582d7..9c43ec0fc994 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -101,6 +101,12 @@ static enum oxp_board board;
+  */
+ #define OXP_X1_CHARGE_BYPASS_MASK_S3S5 0x02
+ 
++/* X1 Turbo LED */
++#define OXP_X1_TURBO_LED_REG           0x57
++
++#define OXP_X1_TURBO_LED_OFF           0x01
++#define OXP_X1_TURBO_LED_ON            0x02
++
+ enum charge_type_value_index {
+ 	CT_OFF,
+ 	CT_S0,
+@@ -466,6 +472,73 @@ static ssize_t tt_toggle_show(struct device *dev,
+ 
+ static DEVICE_ATTR_RW(tt_toggle);
+ 
++/* Callbacks for turbo toggle attribute */
++static umode_t tt_led_is_visible(struct kobject *kobj,
++				    struct attribute *attr, int n)
++{
++	switch (board) {
++	case oxp_x1:
++		return attr->mode;
++	default:
++		break;
++	}
++	return 0;
++}
++
++static ssize_t tt_led_store(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
++{
++	u8 reg, val;
++	int rval;
++	bool value;
++
++	rval = kstrtobool(buf, &value);
++	if (rval)
++		return rval;
++
++	switch (board) {
++	case oxp_x1:
++		reg = OXP_X1_TURBO_LED_REG;
++		val = value ? OXP_X1_TURBO_LED_ON : OXP_X1_TURBO_LED_OFF;
++		break;
++	default:
++		return -EINVAL;
++	}
++	rval = write_to_ec(reg, val);
++
++	if (rval)
++		return rval;
++
++	return count;
++}
++
++static ssize_t tt_led_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	int retval;
++	u8 reg;
++	long enval;
++	long val;
++
++	switch (board) {
++	case oxp_x1:
++		reg = OXP_2_TURBO_SWITCH_REG;
++		enval = OXP_X1_TURBO_LED_ON;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	retval = read_from_ec(reg, 1, &val);
++	if (retval)
++		return retval;
++
++	return sysfs_emit(buf, "%d\n", val == enval);
++}
++
++static DEVICE_ATTR_RW(tt_led);
++
+ /* Callbacks for turbo toggle attribute */
+ static bool charge_control_supported(void)
+ {
+@@ -894,8 +967,19 @@ static struct attribute_group oxp_tt_toggle_attribute_group = {
+ 	.attrs = oxp_tt_toggle_attrs,
+ };
+ 
++static struct attribute *oxp_tt_led_attrs[] = {
++	&dev_attr_tt_led.attr,
++	NULL
++};
++
++static struct attribute_group oxp_tt_led_attribute_group = {
++	.is_visible = tt_led_is_visible,
++	.attrs = oxp_tt_led_attrs,
++};
++
+ static const struct attribute_group *oxp_ec_groups[] = {
+ 	&oxp_tt_toggle_attribute_group,
++	&oxp_tt_led_attribute_group,
+ 	NULL
+ };
+ 
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 7/12] hwmon: (oxp-sensors) Move pwm_enable read to its
+ own function
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:18 +0100
+Message-Id: <20250222161824.172511-8-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, this driver breaks sysfs by using auto as 0 and manual as 1.
+However, for pwm_enable, 0 is full speed, 1 is manual, and 2 is auto.
+For the correction to be possible, this means that the pwm_enable
+endpoint will need access to both pwm enable and value (as for
+the 0th value, the fan needs to be set to full power).
+
+Therefore, begin by moving the current pwm_enable read to its own
+function, oxp_pwm_enable.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 50 ++++++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 9c43ec0fc994..1da1e1655f96 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -762,6 +762,32 @@ static int oxp_pwm_disable(void)
+ 	}
+ }
+ 
++static int oxp_pwm_read(long *val)
++{
++	switch (board) {
++	case orange_pi_neo:
++		return read_from_ec(ORANGEPI_SENSOR_PWM_ENABLE_REG, 1, val);
++	case aok_zoe_a1:
++	case aya_neo_2:
++	case aya_neo_air:
++	case aya_neo_air_1s:
++	case aya_neo_air_plus_mendo:
++	case aya_neo_air_pro:
++	case aya_neo_flip:
++	case aya_neo_geek:
++	case aya_neo_kun:
++	case oxp_2:
++	case oxp_fly:
++	case oxp_mini_amd:
++	case oxp_mini_amd_a07:
++	case oxp_mini_amd_pro:
++	case oxp_x1:
++		return read_from_ec(OXP_SENSOR_PWM_ENABLE_REG, 1, val);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
+ /* Callbacks for hwmon interface */
+ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
+ 				       enum hwmon_sensor_types type, u32 attr, int channel)
+@@ -859,29 +885,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ 			}
+ 			return 0;
+ 		case hwmon_pwm_enable:
+-			switch (board) {
+-			case orange_pi_neo:
+-				return read_from_ec(ORANGEPI_SENSOR_PWM_ENABLE_REG, 1, val);
+-			case aok_zoe_a1:
+-			case aya_neo_2:
+-			case aya_neo_air:
+-			case aya_neo_air_1s:
+-			case aya_neo_air_plus_mendo:
+-			case aya_neo_air_pro:
+-			case aya_neo_flip:
+-			case aya_neo_geek:
+-			case aya_neo_kun:
+-			case oxp_2:
+-			case oxp_fly:
+-			case oxp_mini_amd:
+-			case oxp_mini_amd_a07:
+-			case oxp_mini_amd_pro:
+-			case oxp_x1:
+-				return read_from_ec(OXP_SENSOR_PWM_ENABLE_REG, 1, val);
+-			default:
+-				break;
+-			}
+-			break;
++			return oxp_pwm_read(val);
+ 		default:
+ 			break;
+ 		}
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 8/12] hwmon: (oxp-sensors) Move pwm value read/write to
+ separate functions
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:19 +0100
+Message-Id: <20250222161824.172511-9-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, this driver breaks sysfs by using auto as 0 and manual as 1.
+However, for pwm_enable, 0 is full speed, 1 is manual, and 2 is auto.
+For the correction to be possible, this means that the pwm_enable
+endpoint will need access to both pwm enable and value (as for
+the 0th value, the fan needs to be set to full power).
+
+Therefore, move the pwm value read/write to separate functions.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 162 +++++++++++++++++++-----------------
+ 1 file changed, 87 insertions(+), 75 deletions(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 1da1e1655f96..dade2f76124e 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -802,6 +802,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
+ 	}
+ }
+ 
++/* PWM input read/write functions */
++static int oxp_pwm_input_write(long val)
++{
++	if (val < 0 || val > 255)
++		return -EINVAL;
++	switch (board) {
++	case orange_pi_neo:
++		/* scale to range [1-244] */
++		val = ((val - 1) * 243 / 254) + 1;
++		return write_to_ec(ORANGEPI_SENSOR_PWM_REG, val);
++	case oxp_2:
++	case oxp_x1:
++		/* scale to range [0-184] */
++		val = (val * 184) / 255;
++		return write_to_ec(OXP_SENSOR_PWM_REG, val);
++	case aya_neo_2:
++	case aya_neo_air:
++	case aya_neo_air_1s:
++	case aya_neo_air_plus_mendo:
++	case aya_neo_air_pro:
++	case aya_neo_flip:
++	case aya_neo_geek:
++	case aya_neo_kun:
++	case oxp_mini_amd:
++	case oxp_mini_amd_a07:
++		/* scale to range [0-100] */
++		val = (val * 100) / 255;
++		return write_to_ec(OXP_SENSOR_PWM_REG, val);
++	case aok_zoe_a1:
++	case oxp_fly:
++	case oxp_mini_amd_pro:
++		return write_to_ec(OXP_SENSOR_PWM_REG, val);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static int oxp_pwm_input_read(long *val)
++{
++	int ret;
++
++	switch (board) {
++	case orange_pi_neo:
++		ret = read_from_ec(ORANGEPI_SENSOR_PWM_REG, 1, val);
++		if (ret)
++			return ret;
++		/* scale from range [1-244] */
++		*val = ((*val - 1) * 254 / 243) + 1;
++		break;
++	case oxp_2:
++	case oxp_x1:
++		ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
++		if (ret)
++			return ret;
++		/* scale from range [0-184] */
++		*val = (*val * 255) / 184;
++		break;
++	case aya_neo_2:
++	case aya_neo_air:
++	case aya_neo_air_1s:
++	case aya_neo_air_plus_mendo:
++	case aya_neo_air_pro:
++	case aya_neo_flip:
++	case aya_neo_geek:
++	case aya_neo_kun:
++	case oxp_mini_amd:
++	case oxp_mini_amd_a07:
++		ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
++		if (ret)
++			return ret;
++		/* scale from range [0-100] */
++		*val = (*val * 255) / 100;
++		break;
++	case aok_zoe_a1:
++	case oxp_fly:
++	case oxp_mini_amd_pro:
++	default:
++		ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
++		if (ret)
++			return ret;
++		break;
++	}
++	return 0;
++}
++
+ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ 			     u32 attr, int channel, long *val)
+ {
+@@ -842,48 +927,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ 	case hwmon_pwm:
+ 		switch (attr) {
+ 		case hwmon_pwm_input:
+-			switch (board) {
+-			case orange_pi_neo:
+-				ret = read_from_ec(ORANGEPI_SENSOR_PWM_REG, 1, val);
+-				if (ret)
+-					return ret;
+-				/* scale from range [1-244] */
+-				*val = ((*val - 1) * 254 / 243) + 1;
+-				break;
+-			case oxp_2:
+-			case oxp_x1:
+-				ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
+-				if (ret)
+-					return ret;
+-				/* scale from range [0-184] */
+-				*val = (*val * 255) / 184;
+-				break;
+-			case aya_neo_2:
+-			case aya_neo_air:
+-			case aya_neo_air_1s:
+-			case aya_neo_air_plus_mendo:
+-			case aya_neo_air_pro:
+-			case aya_neo_flip:
+-			case aya_neo_geek:
+-			case aya_neo_kun:
+-			case oxp_mini_amd:
+-			case oxp_mini_amd_a07:
+-				ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
+-				if (ret)
+-					return ret;
+-				/* scale from range [0-100] */
+-				*val = (*val * 255) / 100;
+-				break;
+-			case aok_zoe_a1:
+-			case oxp_fly:
+-			case oxp_mini_amd_pro:
+-			default:
+-				ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
+-				if (ret)
+-					return ret;
+-				break;
+-			}
+-			return 0;
++			return oxp_pwm_input_read(val);
+ 		case hwmon_pwm_enable:
+ 			return oxp_pwm_read(val);
+ 		default:
+@@ -909,39 +953,7 @@ static int oxp_platform_write(struct device *dev, enum hwmon_sensor_types type,
+ 				return oxp_pwm_disable();
+ 			return -EINVAL;
+ 		case hwmon_pwm_input:
+-			if (val < 0 || val > 255)
+-				return -EINVAL;
+-			switch (board) {
+-			case orange_pi_neo:
+-				/* scale to range [1-244] */
+-				val = ((val - 1) * 243 / 254) + 1;
+-				return write_to_ec(ORANGEPI_SENSOR_PWM_REG, val);
+-			case oxp_2:
+-			case oxp_x1:
+-				/* scale to range [0-184] */
+-				val = (val * 184) / 255;
+-				return write_to_ec(OXP_SENSOR_PWM_REG, val);
+-			case aya_neo_2:
+-			case aya_neo_air:
+-			case aya_neo_air_1s:
+-			case aya_neo_air_plus_mendo:
+-			case aya_neo_air_pro:
+-			case aya_neo_flip:
+-			case aya_neo_geek:
+-			case aya_neo_kun:
+-			case oxp_mini_amd:
+-			case oxp_mini_amd_a07:
+-				/* scale to range [0-100] */
+-				val = (val * 100) / 255;
+-				return write_to_ec(OXP_SENSOR_PWM_REG, val);
+-			case aok_zoe_a1:
+-			case oxp_fly:
+-			case oxp_mini_amd_pro:
+-				return write_to_ec(OXP_SENSOR_PWM_REG, val);
+-			default:
+-				break;
+-			}
+-			break;
++			return oxp_pwm_input_write(val);
+ 		default:
+ 			break;
+ 		}
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 9/12] hwmon: (oxp-sensors) Move fan speed read to
+ separate function
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:20 +0100
+Message-Id: <20250222161824.172511-10-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+While not necessary for fixing the sysfs issue, fan speed will be the
+only remaining value without a function. Therefore, finish the refactor
+by moving it to a separate function.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 53 ++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index dade2f76124e..a9332312b2b1 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -802,6 +802,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
+ 	}
+ }
+ 
++/* Fan speed read function */
++static int oxp_pwm_fan_speed(long *val)
++{
++	switch (board) {
++	case orange_pi_neo:
++		return read_from_ec(ORANGEPI_SENSOR_FAN_REG, 2, val);
++	case oxp_2:
++	case oxp_x1:
++		return read_from_ec(OXP_2_SENSOR_FAN_REG, 2, val);
++	case aok_zoe_a1:
++	case aya_neo_2:
++	case aya_neo_air:
++	case aya_neo_air_1s:
++	case aya_neo_air_plus_mendo:
++	case aya_neo_air_pro:
++	case aya_neo_flip:
++	case aya_neo_geek:
++	case aya_neo_kun:
++	case oxp_fly:
++	case oxp_mini_amd:
++	case oxp_mini_amd_a07:
++	case oxp_mini_amd_pro:
++		return read_from_ec(OXP_SENSOR_FAN_REG, 2, val);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
+ /* PWM input read/write functions */
+ static int oxp_pwm_input_write(long val)
+ {
+@@ -896,30 +924,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ 	case hwmon_fan:
+ 		switch (attr) {
+ 		case hwmon_fan_input:
+-			switch (board) {
+-			case orange_pi_neo:
+-				return read_from_ec(ORANGEPI_SENSOR_FAN_REG, 2, val);
+-			case oxp_2:
+-			case oxp_x1:
+-				return read_from_ec(OXP_2_SENSOR_FAN_REG, 2, val);
+-			case aok_zoe_a1:
+-			case aya_neo_2:
+-			case aya_neo_air:
+-			case aya_neo_air_1s:
+-			case aya_neo_air_plus_mendo:
+-			case aya_neo_air_pro:
+-			case aya_neo_flip:
+-			case aya_neo_geek:
+-			case aya_neo_kun:
+-			case oxp_fly:
+-			case oxp_mini_amd:
+-			case oxp_mini_amd_a07:
+-			case oxp_mini_amd_pro:
+-				return read_from_ec(OXP_SENSOR_FAN_REG, 2, val);
+-			default:
+-				break;
+-			}
+-			break;
++			return oxp_pwm_fan_speed(val);
+ 		default:
+ 			break;
+ 		}
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 10/12] hwmon: (oxp-sensors) Adhere to sysfs-class-hwmon
+ and enable pwm on 2
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:21 +0100
+Message-Id: <20250222161824.172511-11-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Currently, the driver does not adhere to the sysfs-class-hwmon
+specification: 0 is used for auto fan control and 1 is used for manual
+control. However, it is expected that 0 sets the fan to full speed,
+1 sets the fan to manual, and then 2 is used for automatic control.
+
+Therefore, change the sysfs API to reflect this and enable pwm on 2.
+
+As we are breaking the ABI for this driver, rename oxpec to oxp_ec,
+reflecting the naming convention used by other drivers, to allow for
+a smooth migration in current userspace programs.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index a9332312b2b1..b5ba863a762a 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -934,7 +934,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ 		case hwmon_pwm_input:
+ 			return oxp_pwm_input_read(val);
+ 		case hwmon_pwm_enable:
+-			return oxp_pwm_read(val);
++			ret = oxp_pwm_read(val);
++			if (ret)
++				return ret;
++
++			/* Check for auto and return 2 */
++			if (!*val) {
++				*val = 2;
++				return 0;
++			}
++
++			/* Return 0 if at full fan speed, 1 otherwise */
++			ret = oxp_pwm_fan_speed(val);
++			if (ret)
++				return ret;
++
++			if (*val == 255)
++				*val = 0;
++			else
++				*val = 1;
++
++			return 0;
+ 		default:
+ 			break;
+ 		}
+@@ -948,15 +968,24 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+ static int oxp_platform_write(struct device *dev, enum hwmon_sensor_types type,
+ 			      u32 attr, int channel, long val)
+ {
++	int ret;
++
+ 	switch (type) {
+ 	case hwmon_pwm:
+ 		switch (attr) {
+ 		case hwmon_pwm_enable:
+ 			if (val == 1)
+ 				return oxp_pwm_enable();
+-			else if (val == 0)
++			else if (val == 2)
+ 				return oxp_pwm_disable();
+-			return -EINVAL;
++			else if (val != 0)
++				return -EINVAL;
++
++			/* Enable PWM and set to max speed */
++			ret = oxp_pwm_enable();
++			if (ret)
++				return ret;
++			return oxp_pwm_input_write(255);
+ 		case hwmon_pwm_input:
+ 			return oxp_pwm_input_write(val);
+ 		default:
+@@ -1021,7 +1050,7 @@ static int oxp_platform_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device *hwdev;
+ 
+-	hwdev = devm_hwmon_device_register_with_info(dev, "oxpec", NULL,
++	hwdev = devm_hwmon_device_register_with_info(dev, "oxp_ec", NULL,
+ 						     &oxp_ec_chip_info, NULL);
+ 
+ 	return PTR_ERR_OR_ZERO(hwdev);
+-- 
+2.48.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v2 11/12] platform/x86: oxpec: Move hwmon/oxp-sensors to
+ platform/x86
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 17:18:22 +0100
+Message-Id: <20250222161824.172511-12-lkml@antheas.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Once upon a time, the platform EC of handheld devices only
+controlled the fan. This is no longer the case, with the
+EC of OneXPlayer gaining additional functionality.
+
+As it will be beneficial from a complexity perspective
+to retain this driver as a single unit, move it out
+of hwmon, and into platform/x86.
+
+While at it, add myself to the maintainer's file.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ Documentation/hwmon/index.rst                         |  2 +-
+ Documentation/hwmon/{oxp-sensors.rst => oxpec.rst}    |  0
+ MAINTAINERS                                           |  7 ++++---
+ drivers/hwmon/Kconfig                                 | 11 -----------
+ drivers/hwmon/Makefile                                |  1 -
+ drivers/platform/x86/Kconfig                          | 11 +++++++++++
+ drivers/platform/x86/Makefile                         |  3 +++
+ drivers/{hwmon/oxp-sensors.c => platform/x86/oxpec.c} | 10 ++++------
+ 8 files changed, 23 insertions(+), 22 deletions(-)
+ rename Documentation/hwmon/{oxp-sensors.rst => oxpec.rst} (100%)
+ rename drivers/{hwmon/oxp-sensors.c => platform/x86/oxpec.c} (98%)
+
+diff --git a/Documentation/hwmon/index.rst b/Documentation/hwmon/index.rst
+index 874f8fd26325..dd7a54d5f281 100644
+--- a/Documentation/hwmon/index.rst
++++ b/Documentation/hwmon/index.rst
+@@ -186,7 +186,7 @@ Hardware Monitoring Kernel Drivers
+    nzxt-kraken3
+    nzxt-smart2
+    occ
+-   oxp-sensors
++   oxpec
+    pc87360
+    pc87427
+    pcf8591
+diff --git a/Documentation/hwmon/oxp-sensors.rst b/Documentation/hwmon/oxpec.rst
+similarity index 100%
+rename from Documentation/hwmon/oxp-sensors.rst
+rename to Documentation/hwmon/oxpec.rst
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a5e49d57c589..35db92380f99 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17629,12 +17629,13 @@ S:	Maintained
+ F:	drivers/mtd/nand/onenand/
+ F:	include/linux/mtd/onenand*.h
+ 
+-ONEXPLAYER FAN DRIVER
++ONEXPLAYER PLATFORM EC DRIVER
++M:	Antheas Kapenekakis <lkml@antheas.dev>
+ M:	Derek John Clark <derekjohn.clark@gmail.com>
+ M:	Joaquín Ignacio Aramendía <samsagax@gmail.com>
+-L:	linux-hwmon@vger.kernel.org
++L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+-F:	drivers/hwmon/oxp-sensors.c
++F:	drivers/platform/x86/oxpec.c
+ 
+ ONIE TLV NVMEM LAYOUT DRIVER
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4cbaba15d86e..09f7aed96d15 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1774,17 +1774,6 @@ config SENSORS_NZXT_SMART2
+ 
+ source "drivers/hwmon/occ/Kconfig"
+ 
+-config SENSORS_OXP
+-	tristate "OneXPlayer EC fan control"
+-	depends on ACPI_EC
+-	depends on X86
+-	help
+-		If you say yes here you get support for fan readings and control over
+-		OneXPlayer handheld devices. Only OneXPlayer mini AMD handheld variant
+-		boards are supported.
+-
+-		Can also be built as a module. In that case it will be called oxp-sensors.
+-
+ config SENSORS_PCF8591
+ 	tristate "Philips PCF8591 ADC/DAC"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index b7ef0f0562d3..0edb08824b17 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -181,7 +181,6 @@ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+ obj-$(CONFIG_SENSORS_NZXT_KRAKEN2) += nzxt-kraken2.o
+ obj-$(CONFIG_SENSORS_NZXT_KRAKEN3) += nzxt-kraken3.o
+ obj-$(CONFIG_SENSORS_NZXT_SMART2) += nzxt-smart2.o
+-obj-$(CONFIG_SENSORS_OXP) += oxp-sensors.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+ obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 0258dd879d64..4531b20c6b30 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1186,6 +1186,17 @@ config SEL3350_PLATFORM
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called sel3350-platform.
+ 
++config OXP_EC
++	tristate "OneXPlayer EC platform control"
++	depends on ACPI_EC
++	depends on X86
++	help
++		Enables support for the platform EC of OneXPlayer and AOKZOE
++		handheld devices. This includes fan speed, fan controls, and
++		disabling the default TDP behavior of the device. Due to legacy
++		reasons, this driver also provides hwmon functionality to Ayaneo
++		devices and the OrangePi Neo.
++
+ endif # X86_PLATFORM_DEVICES
+ 
+ config P2SB
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index e1b142947067..f64a191c1162 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -153,3 +153,6 @@ obj-$(CONFIG_WINMATE_FM07_KEYS)		+= winmate-fm07-keys.o
+ 
+ # SEL
+ obj-$(CONFIG_SEL3350_PLATFORM)		+= sel3350-platform.o
++
++# OneXPlayer
++obj-$(CONFIG_OXP_EC)		+= oxpec.o
+\ No newline at end of file
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/platform/x86/oxpec.c
+similarity index 98%
+rename from drivers/hwmon/oxp-sensors.c
+rename to drivers/platform/x86/oxpec.c
+index b5ba863a762a..51845aae8a44 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -1,11 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0+
+ /*
+- * Platform driver for OneXPlayer, AOKZOE, AYANEO, and OrangePi Handhelds
+- * that expose fan reading and control via hwmon sysfs.
+- *
+- * Old OXP boards have the same DMI strings and they are told apart by
+- * the boot cpu vendor (Intel/AMD). Of these older models only AMD is
+- * supported.
++ * Platform driver for OneXPlayer and AOKZOE devices. For the time being,
++ * it also exposes fan controls for AYANEO, and OrangePi Handhelds via
++ * hwmon sysfs.
+  *
+  * Fan control is provided via pwm interface in the range [0-255].
+  * Old AMD boards use [0-100] as range in the EC, the written value is
+@@ -16,6 +13,7 @@
+  *
+  * Copyright (C) 2022 Joaquín I. Aramendía <samsagax@gmail.com>
+  * Copyright (C) 2024 Derek J. Clark <derekjohn.clark@gmail.com>
++ * Copyright (C) 2025 Antheas Kapenekakis <lkml@antheas.dev>
+  */
+ 
+ #include <linux/acpi.h>
+-- 
+2.48.1
+

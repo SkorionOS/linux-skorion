@@ -16,6 +16,8 @@ CONFIG_FONT_CJK_32x32=y
 # bazzite kernel config
 CONFIG_AMD_PRIVATE_COLOR=y
 
+# oxpec
+CONFIG_OXP_EC=m
 
 #
 CONFIG_MODVERSIONS=y

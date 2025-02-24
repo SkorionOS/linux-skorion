@@ -10,3 +10,4 @@ linux/*.tar.gz
 *vrr-2.patch
 testbuild.sh
 *.tar.xz
+patch
