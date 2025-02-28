@@ -6,8 +6,8 @@
 #             Mikael Eriksson <mikael_eriksson@miffe.org>
 
 pkgbase=linux-chimeraos
-pkgver=6.13.4.skf
-_pkgver=6.13.4
+pkgver=6.13.5.skf
+_pkgver=6.13.5
 pkgrel=1
 pkgdesc="Linux Stable"
 arch=(x86_64)
@@ -105,7 +105,7 @@ sha256sums=('SKIP'
   'cfcd5c177423df8b7b98b0500fe7ab0757f895ed945c33e205963f0069c7a3be' # A005-ROG-ALLY-NCT6775-PLATFORM.patch
   # 'ed290b80935918602e2788f90d6efc4302755ab0679673dd1f5609d65f2b0a1d' # A006-vrr-1.patch
   # 'bfd057f33cd68dd3b69dc64275b5f5dae0b5e7ef53fdccab6c896c734b1a8acb' # A007-vrr-2.patch
-  '6969e3f4c0b7605b48d999e21ebbc2b18714719d277e106d1cb254b1a98ea6e0' # A008-Add-EXTRAVERSION.patch
+  'd7519f5f1e3ff9761cc526131f503ca03db8aecd608c7929f85de1c0fda46fda' # A008-Add-EXTRAVERSION.patch
   'e40db9de280c70d83832cdd0768348de170005cdd3ba233b498db5f81dd24fa1' # 0001-drm-panel-orientation-quirks.patch
   '71d093c5c95d7bd594dd8dcd804eabe2f6b95398c519ded42b7d8994f384e4d8' # 0002-drm-amdgpu-always-allocate-cleared-VRAM-for-GEM-allo.patch
   '02f5eaede065b7d68ccf469c9f54eab3ce3f0d852624a3430d83bcd6e2bd7dbb' # 0006-Ayaneo-geek-headset-patch.patch
