@@ -8,7 +8,7 @@
 pkgbase=linux-chimeraos
 pkgver=6.13.5.skf
 _pkgver=6.13.5
-pkgrel=3
+pkgrel=4
 pkgdesc="Linux Stable"
 arch=(x86_64)
 url="https://kernel.org/"
@@ -88,6 +88,7 @@ source=(
   0201-oxp.patch
   0202-add-devices-to-oxpec.patch
   0203-Fix-use-after-free-when-detaching-device.patch
+  0204-MSI-EC-Add-Claw-8.patch
 )
 
 validpgpkeys=(
@@ -139,6 +140,7 @@ sha256sums=('SKIP'
   '52e9dea084660ab2ad22f92e11d1a947730f310a1fad6b39308072fc3d054a84' # 0201-oxp.patch
   '5531386148f326499e75630dd9451fcbaa64e4e1ca71276c001401fab8008fd5' # 0202-add-devices-to-oxpec.patch
   'b78297523156caea0a93b9bc07153927ad2fd057a60ba37a215dd8cde9c4782d' # 0203-Fix-use-after-free-when-detaching-device.patch
+  '7bd0319e0b0f844eeec407fa43f0d4836f17f78b7e338f5cfb140294f3e18f8c' # 0204-MSI-EC-Add-Claw-8.patch
 )
 
 export KBUILD_BUILD_HOST=archlinux
