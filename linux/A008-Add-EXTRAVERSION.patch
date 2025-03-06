@@ -4,10 +4,10 @@ index c436a6e64971..a7e07afe790a 100644
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 6
- PATCHLEVEL = 13
- SUBLEVEL = 5
--EXTRAVERSION =
-+EXTRAVERSION = -skf
+ PATCHLEVEL = 14
+ SUBLEVEL = 0
+-EXTRAVERSION = -rc5
++EXTRAVERSION = -skf-rc5
  NAME = Baby Opossum Posse
  
  # *DOCUMENTATION*
