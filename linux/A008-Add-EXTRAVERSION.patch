@@ -5,7 +5,7 @@ index c436a6e64971..a7e07afe790a 100644
 @@ -2,7 +2,7 @@
  VERSION = 6
  PATCHLEVEL = 13
- SUBLEVEL = 5
+ SUBLEVEL = 6
 -EXTRAVERSION =
 +EXTRAVERSION = -skf
  NAME = Baby Opossum Posse
