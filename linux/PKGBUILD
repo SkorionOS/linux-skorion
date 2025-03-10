@@ -6,8 +6,8 @@
 #             Mikael Eriksson <mikael_eriksson@miffe.org>
 
 pkgbase=linux-chimeraos
-pkgver=6.14.rc5.skf
-_pkgver=6.14-rc5
+pkgver=6.14.rc6.skf
+_pkgver=6.14-rc6
 pkgrel=1
 pkgdesc="Linux Stable"
 arch=(x86_64)
@@ -85,10 +85,8 @@ source=(
   0081-revert-some-vrr-always-on-hack.patch
   # 0099-add-external-device-drivers.patch
   # 0100-ayaneo-platform.patch
-  0101-ALSA-hda-realtek-Fix-Asus-Z13-2025-audio.patch
   0201-oxp.patch
   0202-add-devices-to-oxpec.patch
-  0203-Fix-use-after-free-when-detaching-device.patch
   0204-MSI-EC-Add-Claw-8.patch
 )
 
@@ -137,10 +135,8 @@ sha256sums=('SKIP'
   '9abba3bd4c5540d5453abb2cd77edeb55b7bc36650f3dc2f71ae3901466b0756' # 0081-revert-some-vrr-always-on-hack.patch
   # '3b1dabc168e4884c6586720538014d6ef8955a0b783d6436dd4937af6622ee42' # 0099-add-external-device-drivers.patch
   # '67cbe650db915155351c33f5c135e21fff70f914be947817a11838861e2fa736' # 0100-ayaneo-platform.patch
-  '7a7add60f6a630031614908381ecdf45ba21b89fde670898e39746fbe6b9ff15' # 0101-ALSA-hda-realtek-Fix-Asus-Z13-2025-audio.patch
   '52e9dea084660ab2ad22f92e11d1a947730f310a1fad6b39308072fc3d054a84' # 0201-oxp.patch
   '5531386148f326499e75630dd9451fcbaa64e4e1ca71276c001401fab8008fd5' # 0202-add-devices-to-oxpec.patch
-  'b78297523156caea0a93b9bc07153927ad2fd057a60ba37a215dd8cde9c4782d' # 0203-Fix-use-after-free-when-detaching-device.patch
   '7bd0319e0b0f844eeec407fa43f0d4836f17f78b7e338f5cfb140294f3e18f8c' # 0204-MSI-EC-Add-Claw-8.patch
 )
 
