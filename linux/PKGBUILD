@@ -4,7 +4,7 @@
 pkgbase=linux-chimeraos
 pkgver=6.13.7.sko
 _pkgver=6.13.7-101
-pkgrel=2
+pkgrel=3
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -41,7 +41,10 @@ source=(
   "0001-cjktty-6.9.patch"
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
+  0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
+  0033-bmi260-6.13.patch
   A008-Add-EXTRAVERSION.patch
+  
 
   # 0003-sk-chos-rogally.patch
 
@@ -72,6 +75,8 @@ sha256sums=('4b550cafeb180e3c1485be01f30a9bd58e8cfb345bcbc69fe9014a59fbf2e6bb'
             'd71fd4f04a6fdded7f222090f423be9bea185d61e02d2b68aba050c802046a26'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
+            '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
+            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
             'SKIP')
 
 export KBUILD_BUILD_HOST=archlinux
