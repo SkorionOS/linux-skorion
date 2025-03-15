@@ -2,7 +2,8 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-chimeraos
-pkgver=6.13.3.sko2
+pkgver=6.13.7.sko
+_pkgver=6.13.7-101
 pkgrel=1
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
@@ -30,16 +31,17 @@ makedepends=(
 options=('!strip')
 _srcname=linux-chimeraos
 source=(
-  "linux-chimeraos.tar.gz::https://github.com/3003n/linux/archive/refs/tags/$_srctag.tar.gz"
+  "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
   config  # the main kernel config file
   config-chimera # our config that will be merged
-  # config-bazzite
+  config-bazzite
   config-sk
-  experiments.patch # experimental kernel patches
 
   # "0001-cjktty.patch::https://github.com/zhmars/cjktty-patches/raw/master/v6.x/cjktty-6.7.patch"
   "0001-cjktty-6.9.patch"
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
+
+  A008-Add-EXTRAVERSION.patch
 
   # 0003-sk-chos-rogally.patch
 
@@ -50,8 +52,6 @@ source=(
   # "0003-uinput.patch"
 
   # "ROG-ALLY-NCT6775-PLATFORM.patch"
-
-  # "https://github.com/jlobue10/ALLY_Nobara_stuff/raw/main/0001-sound-pci-hda-patch_realtek-fix-ALLY-X.patch"
 
   # "0004-vrr-1.patch::https://gitlab.com/evlaV/linux-integration/-/commit/7fbd09a1b740ed016359919003947d05f054ad6b.patch"
   # "0005-vrr-2.patch::https://gitlab.com/evlaV/linux-integration/-/commit/5f96bbb94f4dc884007a22ca3e289215064d2065.patch"
@@ -64,14 +64,15 @@ validpgpkeys=(
   A2FF3A36AAA56654109064AB19802F8B0D70FC30  # Jan Alexander Steffens (heftig)
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
-b2sums=('SKIP'
-        'SKIP'
-        'SKIP'
-        'SKIP'
-        'SKIP'
-        'SKIP'
-        'SKIP'
-        )
+
+sha256sums=('4b550cafeb180e3c1485be01f30a9bd58e8cfb345bcbc69fe9014a59fbf2e6bb'
+            'a8c319f6f81d42d21c708fa2b4b016b0318908b63c31e21e679507f879d2606c'
+            '045995714143ea836009fd5f12bd2cf36119594fa73ef5890a873838c89f95ad'
+            '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
+            'd71fd4f04a6fdded7f222090f423be9bea185d61e02d2b68aba050c802046a26'
+            '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
+            'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
+            'SKIP')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -84,7 +85,8 @@ _make() {
 }
 
 prepare() {
-  dir=$(echo $_srctag | sed 's/^v/linux-/')
+  # dir=$(echo $_srctag | sed 's/^v/linux-/')
+  dir="linux-$_pkgver"
   mv $dir $_srcname
   cd $_srcname
 
@@ -112,7 +114,7 @@ prepare() {
   cp ../config .config
   _make olddefconfig
   scripts/kconfig/merge_config.sh -m .config ../config-chimera
-  # scripts/kconfig/merge_config.sh -m .config ../config-bazzite
+  scripts/kconfig/merge_config.sh -m .config ../config-bazzite
   scripts/kconfig/merge_config.sh -m .config ../config-sk
   diff -u ../config .config || :
 
