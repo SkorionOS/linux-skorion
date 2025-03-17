@@ -3,8 +3,8 @@
 
 pkgbase=linux-chimeraos
 pkgver=6.13.7.sko
-_pkgver=6.13.7-101
-pkgrel=3
+_pkgver=6.13.7-103
+pkgrel=4
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -68,16 +68,16 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('4b550cafeb180e3c1485be01f30a9bd58e8cfb345bcbc69fe9014a59fbf2e6bb'
+sha256sums=('a1c60a20671ea78d892e40c8f7db3e25c2c8a222699c79baef1af8f6949c4aee'
             'a8c319f6f81d42d21c708fa2b4b016b0318908b63c31e21e679507f879d2606c'
             '045995714143ea836009fd5f12bd2cf36119594fa73ef5890a873838c89f95ad'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
-            'd71fd4f04a6fdded7f222090f423be9bea185d61e02d2b68aba050c802046a26'
+            '714e6ca5818617ea045d1142a6507fd3d842a0090c3904f07ef1e65d6fdceeec'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
-            'SKIP')
+            'ab9a7716beb737f48f688930e8707940490c906cf4259052d9ee21beb488741c')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
