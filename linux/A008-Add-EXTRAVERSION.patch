@@ -1,5 +1,14 @@
+From 11bd5d817ed05a9f1fea2b3d1020744b1f68ba34 Mon Sep 17 00:00:00 2001
+From: honjow <honjow311@gmail.com>
+Date: Wed, 19 Mar 2025 09:46:52 +0800
+Subject: [PATCH] Add EXTRAVERSION
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/Makefile b/Makefile
-index c436a6e64971..a7e07afe790a 100644
+index ba71e36c832b..68220c4dfe70 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
@@ -11,3 +20,5 @@ index c436a6e64971..a7e07afe790a 100644
  NAME = Baby Opossum Posse
  
  # *DOCUMENTATION*
+-- 
+2.39.1

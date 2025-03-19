@@ -3,8 +3,8 @@
 
 pkgbase=linux-chimeraos
 pkgver=6.13.7.sko
-_pkgver=6.13.7-103
-pkgrel=4
+_pkgver=6.13.7-104
+pkgrel=5
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -29,7 +29,8 @@ makedepends=(
   #texlive-latexextra
 )
 options=('!strip')
-_srcname=linux-chimeraos
+# _srcname=linux-chimeraos
+_srcname=linux-$_pkgver
 source=(
   "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
   config  # the main kernel config file
@@ -44,21 +45,6 @@ source=(
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
   A008-Add-EXTRAVERSION.patch
-  
-
-  # 0003-sk-chos-rogally.patch
-
-  # "0001-patch_realtek-Fix-ROG-ALLY-X-audio.patch"
-
-  # "0003-iio-imu_Add_ROG_ALLY_bmi323-support.patch"
-
-  # "0003-uinput.patch"
-
-  # "ROG-ALLY-NCT6775-PLATFORM.patch"
-
-  # "0004-vrr-1.patch::https://gitlab.com/evlaV/linux-integration/-/commit/7fbd09a1b740ed016359919003947d05f054ad6b.patch"
-  # "0005-vrr-2.patch::https://gitlab.com/evlaV/linux-integration/-/commit/5f96bbb94f4dc884007a22ca3e289215064d2065.patch"
-
 )
 
 validpgpkeys=(
@@ -68,7 +54,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('a1c60a20671ea78d892e40c8f7db3e25c2c8a222699c79baef1af8f6949c4aee'
+sha256sums=('5a9bd53a562e73571c5363c2640fe7c5a091e5124b0e9b12f5bcf250492743f9'
             'e371e59fba634b56b6cd99dff54f13437ca0c5fe95b27f115591f1b06cb01c7e'
             '045995714143ea836009fd5f12bd2cf36119594fa73ef5890a873838c89f95ad'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
@@ -77,7 +63,7 @@ sha256sums=('a1c60a20671ea78d892e40c8f7db3e25c2c8a222699c79baef1af8f6949c4aee'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
-            'ab9a7716beb737f48f688930e8707940490c906cf4259052d9ee21beb488741c')
+            'e0cacf0825e1885df7988b5d2c5c25cbe47566820ae5661b690e88181f2baf3a')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -91,8 +77,8 @@ _make() {
 
 prepare() {
   # dir=$(echo $_srctag | sed 's/^v/linux-/')
-  dir="linux-$_pkgver"
-  mv $dir $_srcname
+  # dir="linux-$_pkgver"
+  # mv $dir $_srcname
   cd $_srcname
 
   local src
