@@ -1,9 +1,19 @@
 # Chimera specific config flags
 
+# Lenovo-specific drivers
+CONFIG_LEGION_GAMEZONE_WMI=y
+CONFIG_LEGION_DATA_01_WMI=y
+CONFIG_LEGION_OTHER_WMI=y
+
+# ASUS-specific drivers
 CONFIG_HID_ASUS_ALLY=m
 CONFIG_ASUS_WMI_BIOS=y
+CONFIG_ASUS_ARMOURY=m
+CONFIG_ASUS_WMI=m
+CONFIG_ASUS_WMI_DEPRECATED_ATTRS=y
+
 # Disable radeon module
-# CONFIG_DRM_RADEON is not set
+CONFIG_DRM_RADEON=n
 
 # PARAVIRT options have overhead, even on bare metal boots. They can cause
 # spinlocks to not be inlined as well. Either way, we don't intend to run this
@@ -14,6 +24,15 @@ CONFIG_HYPERVISOR_GUEST=n
 # As running as a guest is not allowed disable guest drivers too
 CONFIG_VIRT_DRIVERS=n
 CONFIG_DRM_QXL=n
+
+# Disable xen virtualization
+CONFIG_XEN_PCIDEV_BACKEND=n
+CONFIG_XEN_ACPI_PROCESSOR=n
+CONFIG_XEN_MCE_LOG=n
+CONFIG_XEN_PVHVM_GUEST=n
+CONFIG_XEN_PVHVM_SMP=n
+CONFIG_XEN_PVHVM=n
+CONFIG_XEN_PVH=n
 
 # AGP GPUs are not supported
 CONFIG_AGP=n
