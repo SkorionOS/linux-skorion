@@ -3,8 +3,8 @@
 
 pkgbase=linux-chimeraos
 pkgver=6.13.7.sko
-_pkgver=6.13.7-107-
-pkgrel=6
+_pkgver=6.13.7-109
+pkgrel=7
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -54,7 +54,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('5bc8f3bc3e655571d9f05b78d2790609fa58e8360e13f79ad0e2a15f5616df6c'
+sha256sums=('69ed651b106536bfc6aae63e02b67cfb946e07340d1a1b6b00d151e3285f2acf'
             'e371e59fba634b56b6cd99dff54f13437ca0c5fe95b27f115591f1b06cb01c7e'
             '15efb4f1da878d470546c5c256adf4b7687dd1345b559e0c0a7cb33970b1d064'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
