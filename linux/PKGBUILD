@@ -3,8 +3,8 @@
 
 pkgbase=linux-chimeraos
 pkgver=6.13.8.sko
-_pkgver=6.13.8-102
-pkgrel=2
+_pkgver=6.13.8-104
+pkgrel=3
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -42,8 +42,6 @@ source=(
   "0001-cjktty-6.9.patch"
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
-  0003-platform-x86-int3472-Fix-GPIO-polarity-handling-in-s.patch
-
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
   A008-Add-EXTRAVERSION.patch
@@ -56,14 +54,13 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('e5715bc8885ab8d9ffaee583bbc169d5869d50156ccf94c51420446b42fa875d'
+sha256sums=('f46711627b16adf96dc13fc64d87d7bfd83982f60aa9cbc7352b6bcc3ec5a8ea'
             '797e4d772a62dd24cb281886ec844f718bb910f2b2bfe2de389d341aeb3e5bb1'
             '15efb4f1da878d470546c5c256adf4b7687dd1345b559e0c0a7cb33970b1d064'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
             '714e6ca5818617ea045d1142a6507fd3d842a0090c3904f07ef1e65d6fdceeec'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
-            '072c3694d7ec6fc69ddf07b4b509b0cd140250ad160adcb78cf16ee066c945ab'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
             'SKIP')
