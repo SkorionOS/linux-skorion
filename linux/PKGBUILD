@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-chimeraos
-pkgver=6.13.8.sko
-_pkgver=6.13.8-107
-pkgrel=7
+pkgver=6.13.9.sko
+_pkgver=6.13.9-101
+pkgrel=1
 pkgdesc='Linux ChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -54,7 +54,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('e57f3a630a113fd42001615e0c326c000786f690312efebc3afc642c7c268ab7'
+sha256sums=('8b67adcb13181c4bda480b5f1a13117f6ddc4f53dfea7301dfa855709ec80037'
             '797e4d772a62dd24cb281886ec844f718bb910f2b2bfe2de389d341aeb3e5bb1'
             '15efb4f1da878d470546c5c256adf4b7687dd1345b559e0c0a7cb33970b1d064'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
