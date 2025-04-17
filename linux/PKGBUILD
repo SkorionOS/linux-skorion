@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchimeraos
-pkgver=6.13.9.skb
-_pkgver=6.13.9-104
-pkgrel=4
+pkgver=6.14.2.skb
+_pkgver=6.14.2-102
+pkgrel=2
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -55,7 +55,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('6b43e31673157e4b6887eda6d4d2ede3c226e7e4a754220810c23057a50dcb73'
+sha256sums=('6bdaebc8165c87ab50c9b7fb35e4d6a6b0932ffcbfe3604f8f770ac3281b8ed7'
             '797e4d772a62dd24cb281886ec844f718bb910f2b2bfe2de389d341aeb3e5bb1'
             '15efb4f1da878d470546c5c256adf4b7687dd1345b559e0c0a7cb33970b1d064'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
