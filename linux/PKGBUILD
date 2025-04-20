@@ -4,7 +4,7 @@
 pkgbase=linux-skchimeraos
 pkgver=6.14.2.skb
 _pkgver=6.14.2-104
-pkgrel=4
+pkgrel=5
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -56,7 +56,7 @@ validpgpkeys=(
 )
 
 sha256sums=('37decc52cd7e1ed7067186291326b6e20822e9420786d90efa0e04bd28bf6a6b'
-            '797e4d772a62dd24cb281886ec844f718bb910f2b2bfe2de389d341aeb3e5bb1'
+            '30a1bb8334bf716ac94e9feeb94a7e375688f1763e71b6afbda793639f1a4ef2'
             '15efb4f1da878d470546c5c256adf4b7687dd1345b559e0c0a7cb33970b1d064'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
             '714e6ca5818617ea045d1142a6507fd3d842a0090c3904f07ef1e65d6fdceeec'
@@ -81,6 +81,13 @@ prepare() {
   # dir="linux-$_pkgver"
   # mv $dir $_srcname
   cd $_srcname
+
+  mkdir -p submodules
+  git -c advice.detachedHead=false clone -b hwmon https://github.com/honjow/msi-ec.git submodules/msi-ec
+  cp -f submodules/msi-ec/ec_memory_configuration.h  drivers/platform/x86/msi-ec.h
+  cp -f submodules/msi-ec/msi-ec.c  drivers/platform/x86/msi-ec.c
+  sed -i 's/#include "ec_memory_configuration.h"/#include "msi-ec.h"/' drivers/platform/x86/msi-ec.c
+  sed -i 's/MODULE_VERSION("0.09");/MODULE_VERSION("0.10");/' drivers/platform/x86/msi-ec.c
 
   local src
   for src in "${source[@]}"; do
