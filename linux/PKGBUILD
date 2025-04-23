@@ -43,6 +43,8 @@ source=(
   "0001-cjktty-6.9.patch"
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
+  0005-lenovo-wmi.patch
+
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
   A008-Add-EXTRAVERSION.patch
@@ -59,9 +61,10 @@ sha256sums=('721617ad367c609428eddd0c68e90dab570ff53aa3b39b1d348b72089c9044a9'
             '30a1bb8334bf716ac94e9feeb94a7e375688f1763e71b6afbda793639f1a4ef2'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '505a0e06070c8ac8204f937c54bd92ab1e4b940d24bff2bf5fdd9551ac60cc37'
-            '714e6ca5818617ea045d1142a6507fd3d842a0090c3904f07ef1e65d6fdceeec'
+            '615f3d40eee647a343b968b43518f0c1c4cb83fa0d3c65f0397f5d7df5ae9359'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
+            '66c944921cd3bb6b02d0348dc2ffa0515d5637609805eca6480ede3ada04bab1'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
             'SKIP')
