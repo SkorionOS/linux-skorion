@@ -2535,7 +2535,7 @@ index a5255e080e87..b43a0a8f0024 100644
 +	}
 +	return NULL;
 +}
-+EXPORT_SYMBOL_NS_GPL(lwmi_cd01_get_data, LENOVO_WMI_CD01);
++EXPORT_SYMBOL_NS_GPL(lwmi_cd01_get_data, "LENOVO_WMI_CD01");
 +
  /**
   * lwmi_cd01_setup() - Cache all WMI data block information
