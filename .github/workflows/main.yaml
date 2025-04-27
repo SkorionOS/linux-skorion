@@ -26,13 +26,13 @@ jobs:
       - name: Maximize build space
         run: |
           df -h
-          rm -rf /usr-host/share/dotnet
-          rm -rf /usr-host/share/swift
-          rm -rf /usr-host/share/java
-          rm -rf /usr-host/local/lib/android
-          rm -rf /opt-host/ghc
-          rm -rf /opt-host/hostedtoolcache
-          rm -rf /opt-host/az
+          rm -rf /usr-host/share/dotnet || true
+          rm -rf /usr-host/share/swift || true
+          rm -rf /usr-host/share/java || true
+          rm -rf /usr-host/local/lib/android || true
+          rm -rf /opt-host/ghc || true
+          rm -rf /opt-host/hostedtoolcache || true
+          rm -rf /opt-host/az || true
           df -h
       - uses: actions/checkout@v3
       - name: Create build user
