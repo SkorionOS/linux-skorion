@@ -1,27 +1,333 @@
-From d4b260510d9346b53cc7fce1fa607df913ca437a Mon Sep 17 00:00:00 2001
+From 2c1e0acfb4aedfaa05a4ce363192783b5e36f181 Mon Sep 17 00:00:00 2001
+From: Jackie Dong <xy-jackie@139.com>
+Date: Sat, 22 Feb 2025 19:45:31 +0800
+Subject: [PATCH 1/7] platform/x86:lenovo-wmi-hotkey-utilities.c: Support for
+ mic and audio mute LEDs
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Implement Lenovo utility data WMI calls needed to make LEDs
+work on Ideapads that support this GUID.
+This enables the mic and audio LEDs to be updated correctly.
+
+Tested on below samples.
+ThinkBook 13X Gen4 IMH
+ThinkBook 14 G6 ABP
+ThinkBook 16p Gen4-21J8
+ThinkBook 16 G8 IRL
+ThinkBook 16 G7+ ASP
+
+Signed-off-by: Jackie Dong <xy-jackie@139.com>
+Suggested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+Reviewed-by: Kurt Borja <kuurtb@gmail.com>
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+---
+ MAINTAINERS                                   |   6 +
+ drivers/platform/x86/Kconfig                  |  11 +
+ drivers/platform/x86/Makefile                 |   1 +
+ .../x86/lenovo-wmi-hotkey-utilities.c         | 212 ++++++++++++++++++
+ 4 files changed, 230 insertions(+)
+ create mode 100644 drivers/platform/x86/lenovo-wmi-hotkey-utilities.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2ccea0b0a5c7..4051c2e7f800 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13151,6 +13151,12 @@ S:	Maintained
+ W:	http://legousb.sourceforge.net/
+ F:	drivers/usb/misc/legousbtower.c
+ 
++LENOVO WMI HOTKEY UTILITIES DRIVER
++M:	Jackie Dong <xy-jackie@139.com>
++L:	platform-driver-x86@vger.kernel.org
++S:	Maintained
++F:	drivers/platform/x86/lenovo-wmi-hotkey-utilities.c
++
+ LETSKETCH HID TABLET DRIVER
+ M:	Hans de Goede <hdegoede@redhat.com>
+ L:	linux-input@vger.kernel.org
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 51a34ab476ff..8b1e4ded7717 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -492,6 +492,17 @@ config IDEAPAD_LAPTOP
+ 	  This is a driver for Lenovo IdeaPad netbooks contains drivers for
+ 	  rfkill switch, hotkey, fan control and backlight control.
+ 
++config LENOVO_WMI_HOTKEY_UTILITIES
++	tristate "Lenovo Hotkey Utility WMI extras driver"
++	depends on ACPI_WMI
++	select NEW_LEDS
++	select LEDS_CLASS
++	imply IDEAPAD_LAPTOP
++	help
++	  This driver provides WMI support for Lenovo customized hotkeys function,
++	  such as LED control for audio/mic mute event for Ideapad, YOGA, XiaoXin,
++	  Gaming, ThinkBook and so on.
++
+ config LENOVO_YMC
+ 	tristate "Lenovo Yoga Tablet Mode Control"
+ 	depends on ACPI_WMI
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 3a9e58f1fe45..5dfb3f7a00b2 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -66,6 +66,7 @@ obj-$(CONFIG_UV_SYSFS)       += uv_sysfs.o
+ # IBM Thinkpad and Lenovo
+ obj-$(CONFIG_IBM_RTL)		+= ibm_rtl.o
+ obj-$(CONFIG_IDEAPAD_LAPTOP)	+= ideapad-laptop.o
++obj-$(CONFIG_LENOVO_WMI_HOTKEY_UTILITIES)	+= lenovo-wmi-hotkey-utilities.o
+ obj-$(CONFIG_LENOVO_YMC)	+= lenovo-ymc.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
+diff --git a/drivers/platform/x86/lenovo-wmi-hotkey-utilities.c b/drivers/platform/x86/lenovo-wmi-hotkey-utilities.c
+new file mode 100644
+index 000000000000..89153afd7015
+--- /dev/null
++++ b/drivers/platform/x86/lenovo-wmi-hotkey-utilities.c
+@@ -0,0 +1,212 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  Lenovo Super Hotkey Utility WMI extras driver for Ideapad laptop
++ *
++ *  Copyright (C) 2025	Lenovo
++ */
++
++#include <linux/cleanup.h>
++#include <linux/dev_printk.h>
++#include <linux/device.h>
++#include <linux/leds.h>
++#include <linux/module.h>
++#include <linux/wmi.h>
++
++/* Lenovo Super Hotkey WMI GUIDs */
++#define LUD_WMI_METHOD_GUID	"CE6C0974-0407-4F50-88BA-4FC3B6559AD8"
++
++/* Lenovo Utility Data WMI method_id */
++#define WMI_LUD_GET_SUPPORT 1
++#define WMI_LUD_SET_FEATURE 2
++
++#define WMI_LUD_GET_MICMUTE_LED_VER   20
++#define WMI_LUD_GET_AUDIOMUTE_LED_VER 26
++
++#define WMI_LUD_SUPPORT_MICMUTE_LED_VER   25
++#define WMI_LUD_SUPPORT_AUDIOMUTE_LED_VER 27
++
++/* Input parameters to mute/unmute audio LED and Mic LED */
++struct wmi_led_args {
++	u8 id;
++	u8 subid;
++	u16 value;
++};
++
++/* Values of input parameters to SetFeature of audio LED and Mic LED */
++enum hotkey_set_feature {
++	MIC_MUTE_LED_ON		= 1,
++	MIC_MUTE_LED_OFF	= 2,
++	AUDIO_MUTE_LED_ON	= 4,
++	AUDIO_MUTE_LED_OFF	= 5,
++};
++
++#define LSH_ACPI_LED_MAX 2
++
++struct lenovo_super_hotkey_wmi_private {
++	struct led_classdev cdev[LSH_ACPI_LED_MAX];
++	struct wmi_device *led_wdev;
++};
++
++enum mute_led_type {
++	MIC_MUTE,
++	AUDIO_MUTE,
++};
++
++static int lsh_wmi_mute_led_set(enum mute_led_type led_type, struct led_classdev *led_cdev,
++				enum led_brightness brightness)
++
++{
++	struct lenovo_super_hotkey_wmi_private *wpriv = container_of(led_cdev,
++			struct lenovo_super_hotkey_wmi_private, cdev[led_type]);
++	struct wmi_led_args led_arg = {0, 0, 0};
++	struct acpi_buffer input;
++	acpi_status status;
++
++	switch (led_type) {
++	case MIC_MUTE:
++		led_arg.id = brightness == LED_ON ? MIC_MUTE_LED_ON : MIC_MUTE_LED_OFF;
++		break;
++	case AUDIO_MUTE:
++		led_arg.id = brightness == LED_ON ? AUDIO_MUTE_LED_ON : AUDIO_MUTE_LED_OFF;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	input.length = sizeof(led_arg);
++	input.pointer = &led_arg;
++	status = wmidev_evaluate_method(wpriv->led_wdev, 0, WMI_LUD_SET_FEATURE, &input, NULL);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	return 0;
++}
++
++static int lsh_wmi_audiomute_led_set(struct led_classdev *led_cdev,
++				     enum led_brightness brightness)
++
++{
++	return lsh_wmi_mute_led_set(AUDIO_MUTE, led_cdev, brightness);
++}
++
++static int lsh_wmi_micmute_led_set(struct led_classdev *led_cdev,
++				   enum led_brightness brightness)
++{
++	return lsh_wmi_mute_led_set(MIC_MUTE, led_cdev, brightness);
++}
++
++static int lenovo_super_hotkey_wmi_led_init(enum mute_led_type led_type, struct device *dev)
++{
++	struct lenovo_super_hotkey_wmi_private *wpriv = dev_get_drvdata(dev);
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_buffer input;
++	int led_version, err = 0;
++	unsigned int wmiarg;
++	acpi_status status;
++
++	switch (led_type) {
++	case MIC_MUTE:
++		wmiarg = WMI_LUD_GET_MICMUTE_LED_VER;
++		break;
++	case AUDIO_MUTE:
++		wmiarg = WMI_LUD_GET_AUDIOMUTE_LED_VER;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	input.length = sizeof(wmiarg);
++	input.pointer = &wmiarg;
++	status = wmidev_evaluate_method(wpriv->led_wdev, 0, WMI_LUD_GET_SUPPORT, &input, &output);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	union acpi_object *obj __free(kfree) = output.pointer;
++	if (obj && obj->type == ACPI_TYPE_INTEGER)
++		led_version = obj->integer.value;
++	else
++		return -EIO;
++
++	wpriv->cdev[led_type].max_brightness = LED_ON;
++	wpriv->cdev[led_type].flags = LED_CORE_SUSPENDRESUME;
++
++	switch (led_type) {
++	case MIC_MUTE:
++		if (led_version != WMI_LUD_SUPPORT_MICMUTE_LED_VER)
++			return -EIO;
++
++		wpriv->cdev[led_type].name = "platform::micmute";
++		wpriv->cdev[led_type].brightness_set_blocking = &lsh_wmi_micmute_led_set;
++		wpriv->cdev[led_type].default_trigger = "audio-micmute";
++		break;
++	case AUDIO_MUTE:
++		if (led_version != WMI_LUD_SUPPORT_AUDIOMUTE_LED_VER)
++			return -EIO;
++
++		wpriv->cdev[led_type].name = "platform::mute";
++		wpriv->cdev[led_type].brightness_set_blocking = &lsh_wmi_audiomute_led_set;
++		wpriv->cdev[led_type].default_trigger = "audio-mute";
++		break;
++	default:
++		dev_err(dev, "Unknown LED type %d\n", led_type);
++		return -EINVAL;
++	}
++
++	err = devm_led_classdev_register(dev, &wpriv->cdev[led_type]);
++	if (err < 0) {
++		dev_err(dev, "Could not register mute LED %d : %d\n", led_type, err);
++		return err;
++	}
++	return 0;
++}
++
++static int lenovo_super_hotkey_wmi_leds_setup(struct device *dev)
++{
++	int err;
++
++	err = lenovo_super_hotkey_wmi_led_init(MIC_MUTE, dev);
++	if (err)
++		return err;
++
++	err = lenovo_super_hotkey_wmi_led_init(AUDIO_MUTE, dev);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static int lenovo_super_hotkey_wmi_probe(struct wmi_device *wdev, const void *context)
++{
++	struct lenovo_super_hotkey_wmi_private *wpriv;
++
++	wpriv = devm_kzalloc(&wdev->dev, sizeof(*wpriv), GFP_KERNEL);
++	if (!wpriv)
++		return -ENOMEM;
++
++	dev_set_drvdata(&wdev->dev, wpriv);
++	wpriv->led_wdev = wdev;
++	return lenovo_super_hotkey_wmi_leds_setup(&wdev->dev);
++}
++
++static const struct wmi_device_id lenovo_super_hotkey_wmi_id_table[] = {
++	{ LUD_WMI_METHOD_GUID, NULL }, /* Utility data */
++	{ }
++};
++
++MODULE_DEVICE_TABLE(wmi, lenovo_super_hotkey_wmi_id_table);
++
++static struct wmi_driver lenovo_wmi_hotkey_utilities_driver = {
++	 .driver = {
++		 .name = "lenovo_wmi_hotkey_utilities",
++		 .probe_type = PROBE_PREFER_ASYNCHRONOUS
++	 },
++	 .id_table = lenovo_super_hotkey_wmi_id_table,
++	 .probe = lenovo_super_hotkey_wmi_probe,
++	 .no_singleton = true,
++};
++
++module_wmi_driver(lenovo_wmi_hotkey_utilities_driver);
++
++MODULE_AUTHOR("Jackie Dong <dongeg1@lenovo.com>");
++MODULE_DESCRIPTION("Lenovo Super Hotkey Utility WMI extras driver");
++MODULE_LICENSE("GPL");
+-- 
+2.39.1
+
+
+From fd942872a24e2efad041683b127184b85eef9b64 Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:10 -0700
-Subject: [PATCH 1/7] platform/x86: Add lenovo-wmi-* driver Documentation
+Date: Sun, 27 Apr 2025 18:18:01 -0700
+Subject: [PATCH 2/7] platform/x86: Add Lenovo WMI Driver Documentation
 
 Adds documentation for new lenovo-wmi drivers.
 
+Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
-Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 ---
- .../wmi/devices/lenovo-wmi-gamezone.rst       | 202 ++++++++++++++++++
- .../wmi/devices/lenovo-wmi-other-method.rst   | 108 ++++++++++
+ .../wmi/devices/lenovo-wmi-gamezone.rst       | 203 ++++++++++++++++++
+ .../wmi/devices/lenovo-wmi-other.rst          | 108 ++++++++++
  MAINTAINERS                                   |   7 +
- 3 files changed, 317 insertions(+)
+ 3 files changed, 318 insertions(+)
  create mode 100644 Documentation/wmi/devices/lenovo-wmi-gamezone.rst
- create mode 100644 Documentation/wmi/devices/lenovo-wmi-other-method.rst
+ create mode 100644 Documentation/wmi/devices/lenovo-wmi-other.rst
 
 diff --git a/Documentation/wmi/devices/lenovo-wmi-gamezone.rst b/Documentation/wmi/devices/lenovo-wmi-gamezone.rst
 new file mode 100644
-index 000000000000..ec4130c4d490
+index 000000000000..997263e51a7d
 --- /dev/null
 +++ b/Documentation/wmi/devices/lenovo-wmi-gamezone.rst
-@@ -0,0 +1,202 @@
+@@ -0,0 +1,203 @@
 +.. SPDX-License-Identifier: GPL-2.0-or-later
 +
 +==========================================================
@@ -31,7 +337,7 @@ index 000000000000..ec4130c4d490
 +Introduction
 +============
 +The Lenovo WMI gamezone interface is broken up into multiple GUIDs,
-+The priamry "Gamezone" GUID provides advanced features such as fan
++The primary "Gamezone" GUID provides advanced features such as fan
 +profiles and overclocking. It is paired with multiple event GUIDs
 +and data block GUIDs that provide context for the various methods.
 +
@@ -48,7 +354,7 @@ index 000000000000..ec4130c4d490
 +The following platform profiles are supported:
 + - low-power
 + - balanced
-+ - balanced-performance*
++ - balanced-performance
 + - performance
 + - custom
 +
@@ -56,13 +362,14 @@ index 000000000000..ec4130c4d490
 +~~~~~~~~~~~~~~~~~~~~
 +Some newer Lenovo "Gaming Series" laptops have an "Extreme Mode" profile
 +enabled in their BIOS. For these devices, the performance platform profile
-+will correspond to the BIOS Extreme Mode, while the balanced-performance
-+platform profile will correspond to the BIOS Performance mode. For legacy
++corresponds to the BIOS Extreme Mode, while the balanced-performance
++platform profile corresponds to the BIOS Performance mode. For legacy
 +devices, the performance platform profile will correspond with the BIOS
-+Performance mode. For some newer devices the "Extreme Mode" profile is
-+incomplete in the BIOS and setting it will cause undefined behavior. A
-+BIOS bug quirk table is provided to ensure these devices cannot set
-+"Extreme Mode" from the driver.
++Performance mode.
++
++For some newer devices the "Extreme Mode" profile is incomplete in the BIOS
++and setting it will cause undefined behavior. A BIOS bug quirk table is
++provided to ensure these devices cannot set "Extreme Mode" from the driver.
 +
 +Custom Profile
 +~~~~~~~~~~~~~~
@@ -224,11 +531,11 @@ index 000000000000..ec4130c4d490
 +
 +    [WmiDataId(1), read, Description("Thermal Mode Real Mode")] uint32 mode;
 +  };
-diff --git a/Documentation/wmi/devices/lenovo-wmi-other-method.rst b/Documentation/wmi/devices/lenovo-wmi-other-method.rst
+diff --git a/Documentation/wmi/devices/lenovo-wmi-other.rst b/Documentation/wmi/devices/lenovo-wmi-other.rst
 new file mode 100644
 index 000000000000..d7928b8dfb4b
 --- /dev/null
-+++ b/Documentation/wmi/devices/lenovo-wmi-other-method.rst
++++ b/Documentation/wmi/devices/lenovo-wmi-other.rst
 @@ -0,0 +1,108 @@
 +.. SPDX-License-Identifier: GPL-2.0-or-later
 +
@@ -339,7 +646,7 @@ index 000000000000..d7928b8dfb4b
 +    [WmiDataId(4), read, Description("Default Value"), WmiSizeIs("DataSize")] uint8 DefaultValue[];
 +  };
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 2ccea0b0a5c7..42c03b91005e 100644
+index 4051c2e7f800..80c34eb329f0 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
 @@ -13151,6 +13151,13 @@ S:	Maintained
@@ -353,49 +660,48 @@ index 2ccea0b0a5c7..42c03b91005e 100644
 +F:	Documentation/wmi/devices/lenovo-wmi-gamezone.rst
 +F:	Documentation/wmi/devices/lenovo-wmi-other.rst
 +
- LETSKETCH HID TABLET DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
- L:	linux-input@vger.kernel.org
+ LENOVO WMI HOTKEY UTILITIES DRIVER
+ M:	Jackie Dong <xy-jackie@139.com>
+ L:	platform-driver-x86@vger.kernel.org
 -- 
-2.49.0
+2.39.1
 
 
-From 949ad1216586eced96162bed710e6564d7da6d9f Mon Sep 17 00:00:00 2001
+From e222673a6dea3722cbed43bd19e512aab39f9699 Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:11 -0700
-Subject: [PATCH 2/7] platform/x86: Add lenovo-wmi-helpers
+Date: Sun, 27 Apr 2025 18:18:02 -0700
+Subject: [PATCH 3/7] platform/x86: Add Lenovo WMI Helpers
 
 Adds lenovo-wmi-helpers, which provides a common wrapper function for
 wmidev_evaluate_method that does data validation and error handling.
 
+Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
-Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 ---
- MAINTAINERS                               |  2 +
+ MAINTAINERS                               |  1 +
  drivers/platform/x86/Kconfig              |  4 ++
  drivers/platform/x86/Makefile             |  1 +
  drivers/platform/x86/lenovo-wmi-helpers.c | 74 +++++++++++++++++++++++
  drivers/platform/x86/lenovo-wmi-helpers.h | 20 ++++++
- 5 files changed, 101 insertions(+)
+ 5 files changed, 100 insertions(+)
  create mode 100644 drivers/platform/x86/lenovo-wmi-helpers.c
  create mode 100644 drivers/platform/x86/lenovo-wmi-helpers.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 42c03b91005e..14c73e733f6b 100644
+index 80c34eb329f0..831f9d359350 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -13157,6 +13157,8 @@ L:	platform-driver-x86@vger.kernel.org
+@@ -13157,6 +13157,7 @@ L:	platform-driver-x86@vger.kernel.org
  S:	Maintained
  F:	Documentation/wmi/devices/lenovo-wmi-gamezone.rst
  F:	Documentation/wmi/devices/lenovo-wmi-other.rst
-+F:	drivers/platform/x86/lenovo-wmi-helpers.c
-+F:	drivers/platform/x86/lenovo-wmi-helpers.h
++F:	drivers/platform/x86/lenovo-wmi-helpers.*
  
- LETSKETCH HID TABLET DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
+ LENOVO WMI HOTKEY UTILITIES DRIVER
+ M:	Jackie Dong <xy-jackie@139.com>
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 51a34ab476ff..3b567e2b6948 100644
+index 8b1e4ded7717..a5f98889cc66 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -476,6 +476,10 @@ config IBM_RTL
@@ -410,10 +716,10 @@ index 51a34ab476ff..3b567e2b6948 100644
  	tristate "Lenovo IdeaPad Laptop Extras"
  	depends on ACPI
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 3a9e58f1fe45..92f7a2b1850d 100644
+index 5dfb3f7a00b2..be09ea2fc7f8 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
-@@ -73,6 +73,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
+@@ -74,6 +74,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
  obj-$(CONFIG_YOGABOOK)		+= lenovo-yogabook.o
  obj-$(CONFIG_YT2_1380)		+= lenovo-yoga-tab2-pro-1380-fastcharger.o
  obj-$(CONFIG_LENOVO_WMI_CAMERA)	+= lenovo-wmi-camera.o
@@ -423,7 +729,7 @@ index 3a9e58f1fe45..92f7a2b1850d 100644
  obj-y				+= intel/
 diff --git a/drivers/platform/x86/lenovo-wmi-helpers.c b/drivers/platform/x86/lenovo-wmi-helpers.c
 new file mode 100644
-index 000000000000..166e87fef156
+index 000000000000..2df0408e2a9c
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-helpers.c
 @@ -0,0 +1,74 @@
@@ -468,7 +774,7 @@ index 000000000000..166e87fef156
 + * integer. Validates the return value type and assigns the value to the
 + * retval pointer.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +int lwmi_dev_evaluate_int(struct wmi_device *wdev, u8 instance, u32 method_id,
 +			  unsigned char *buf, size_t size, u32 *retval)
@@ -528,13 +834,13 @@ index 000000000000..b76633603dcc
 +
 +#endif /* !_LENOVO_WMI_HELPERS_H_ */
 -- 
-2.49.0
+2.39.1
 
 
-From 229f95934964104e04cf1247992f5ed2ac8c9705 Mon Sep 17 00:00:00 2001
+From f5214ed96fa3f2e6af0d3aa95213e4f4310e7ffc Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:12 -0700
-Subject: [PATCH 3/7] platform/x86: Add Lenovo WMI Events Driver
+Date: Sun, 27 Apr 2025 18:18:03 -0700
+Subject: [PATCH 4/7] platform/x86: Add Lenovo WMI Events Driver
 
 Adds lenovo-wmi-events driver. The events driver is designed as a
 general entrypoint for all Lenovo WMI Events. It acts as a notification
@@ -550,30 +856,29 @@ Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
 ---
- MAINTAINERS                              |   2 +
+ MAINTAINERS                              |   1 +
  drivers/platform/x86/Kconfig             |   4 +
  drivers/platform/x86/Makefile            |   1 +
  drivers/platform/x86/lenovo-wmi-events.c | 196 +++++++++++++++++++++++
  drivers/platform/x86/lenovo-wmi-events.h |  20 +++
- 5 files changed, 223 insertions(+)
+ 5 files changed, 222 insertions(+)
  create mode 100644 drivers/platform/x86/lenovo-wmi-events.c
  create mode 100644 drivers/platform/x86/lenovo-wmi-events.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 14c73e733f6b..2bf832edca41 100644
+index 831f9d359350..5e7a77744ec6 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -13157,6 +13157,8 @@ L:	platform-driver-x86@vger.kernel.org
+@@ -13157,6 +13157,7 @@ L:	platform-driver-x86@vger.kernel.org
  S:	Maintained
  F:	Documentation/wmi/devices/lenovo-wmi-gamezone.rst
  F:	Documentation/wmi/devices/lenovo-wmi-other.rst
-+F:	drivers/platform/x86/lenovo-wmi-events.c
-+F:	drivers/platform/x86/lenovo-wmi-events.h
- F:	drivers/platform/x86/lenovo-wmi-helpers.c
- F:	drivers/platform/x86/lenovo-wmi-helpers.h
++F:	drivers/platform/x86/lenovo-wmi-events.*
+ F:	drivers/platform/x86/lenovo-wmi-helpers.*
  
+ LENOVO WMI HOTKEY UTILITIES DRIVER
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 3b567e2b6948..e16ae25ce630 100644
+index a5f98889cc66..03b003baa152 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -476,6 +476,10 @@ config IBM_RTL
@@ -588,10 +893,10 @@ index 3b567e2b6948..e16ae25ce630 100644
  	tristate
  	depends on ACPI_WMI
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 92f7a2b1850d..961b682dfdb1 100644
+index be09ea2fc7f8..b47a8b603fd7 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
-@@ -73,6 +73,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
+@@ -74,6 +74,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
  obj-$(CONFIG_YOGABOOK)		+= lenovo-yogabook.o
  obj-$(CONFIG_YT2_1380)		+= lenovo-yoga-tab2-pro-1380-fastcharger.o
  obj-$(CONFIG_LENOVO_WMI_CAMERA)	+= lenovo-wmi-camera.o
@@ -601,7 +906,7 @@ index 92f7a2b1850d..961b682dfdb1 100644
  # Intel
 diff --git a/drivers/platform/x86/lenovo-wmi-events.c b/drivers/platform/x86/lenovo-wmi-events.c
 new file mode 100644
-index 000000000000..5c18c392d0e9
+index 000000000000..78bcb68b5bc4
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-events.c
 @@ -0,0 +1,196 @@
@@ -699,7 +1004,7 @@ index 000000000000..5c18c392d0e9
 + * managed action, unregister_notifier to automatically unregister the
 + * notifier block upon its parent device removal.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +int devm_lwmi_events_register_notifier(struct device *dev,
 +				       struct notifier_block *nb)
@@ -722,7 +1027,7 @@ index 000000000000..5c18c392d0e9
 + * Validate WMI event data and notify all registered drivers of the event and
 + * its output.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static void lwmi_events_notify(struct wmi_device *wdev, union acpi_object *obj)
 +{
@@ -828,13 +1133,13 @@ index 000000000000..e4c5459c2f24
 +
 +#endif /* !_LENOVO_WMI_EVENTS_H_ */
 -- 
-2.49.0
+2.39.1
 
 
-From 90996b97d8fc9f70e81948981ce6f8fcc35d40dd Mon Sep 17 00:00:00 2001
+From 33b71e6804eadf652a5a29afec350ac2932353c8 Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:13 -0700
-Subject: [PATCH 4/7] platform/x86: Add Lenovo Capability Data 01 WMI Driver
+Date: Sun, 27 Apr 2025 18:18:04 -0700
+Subject: [PATCH 5/7] platform/x86: Add Lenovo WMI Capability Data 01 Driver
 
 Adds lenovo-wmi-capdata01 driver which provides the
 LENOVO_CAPABILITY_DATA_01 WMI data block that comes on "Other Mode"
@@ -842,33 +1147,32 @@ enabled hardware. Provides an interface for querying if a given
 attribute is supported by the hardware, as well as its default_value,
 max_value, min_value, and step increment.
 
-Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
 ---
- MAINTAINERS                                 |   2 +
+ MAINTAINERS                                 |   1 +
  drivers/platform/x86/Kconfig                |   4 +
  drivers/platform/x86/Makefile               |   1 +
- drivers/platform/x86/lenovo-wmi-capdata01.c | 168 ++++++++++++++++++++
- drivers/platform/x86/lenovo-wmi-capdata01.h |  28 ++++
- 5 files changed, 203 insertions(+)
+ drivers/platform/x86/lenovo-wmi-capdata01.c | 272 ++++++++++++++++++++
+ drivers/platform/x86/lenovo-wmi-capdata01.h |  29 +++
+ 5 files changed, 307 insertions(+)
  create mode 100644 drivers/platform/x86/lenovo-wmi-capdata01.c
  create mode 100644 drivers/platform/x86/lenovo-wmi-capdata01.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 2bf832edca41..856c17eddb9c 100644
+index 5e7a77744ec6..ead88fc2958b 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -13157,6 +13157,8 @@ L:	platform-driver-x86@vger.kernel.org
+@@ -13157,6 +13157,7 @@ L:	platform-driver-x86@vger.kernel.org
  S:	Maintained
  F:	Documentation/wmi/devices/lenovo-wmi-gamezone.rst
  F:	Documentation/wmi/devices/lenovo-wmi-other.rst
-+F:	drivers/platform/x86/lenovo-wmi-capdata01.c
-+F:	drivers/platform/x86/lenovo-wmi-capdata01.h
- F:	drivers/platform/x86/lenovo-wmi-events.c
- F:	drivers/platform/x86/lenovo-wmi-events.h
- F:	drivers/platform/x86/lenovo-wmi-helpers.c
++F:	drivers/platform/x86/lenovo-wmi-capdata01.*
+ F:	drivers/platform/x86/lenovo-wmi-events.*
+ F:	drivers/platform/x86/lenovo-wmi-helpers.*
+ 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index e16ae25ce630..ee94239fc555 100644
+index 03b003baa152..491ded37c862 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -484,6 +484,10 @@ config LENOVO_WMI_HELPERS
@@ -883,10 +1187,10 @@ index e16ae25ce630..ee94239fc555 100644
  	tristate "Lenovo IdeaPad Laptop Extras"
  	depends on ACPI
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 961b682dfdb1..975180f8db15 100644
+index b47a8b603fd7..4c2a8db209a8 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
-@@ -73,6 +73,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
+@@ -74,6 +74,7 @@ obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
  obj-$(CONFIG_YOGABOOK)		+= lenovo-yogabook.o
  obj-$(CONFIG_YT2_1380)		+= lenovo-yoga-tab2-pro-1380-fastcharger.o
  obj-$(CONFIG_LENOVO_WMI_CAMERA)	+= lenovo-wmi-camera.o
@@ -896,10 +1200,10 @@ index 961b682dfdb1..975180f8db15 100644
  
 diff --git a/drivers/platform/x86/lenovo-wmi-capdata01.c b/drivers/platform/x86/lenovo-wmi-capdata01.c
 new file mode 100644
-index 000000000000..a5255e080e87
+index 000000000000..841d4a37249b
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-capdata01.c
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,272 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Lenovo Capability Data 01 WMI Data Block driver.
@@ -921,6 +1225,7 @@ index 000000000000..a5255e080e87
 +#include <linux/export.h>
 +#include <linux/gfp_types.h>
 +#include <linux/module.h>
++#include <linux/notifier.h>
 +#include <linux/overflow.h>
 +#include <linux/types.h>
 +#include <linux/wmi.h>
@@ -929,7 +1234,12 @@ index 000000000000..a5255e080e87
 +
 +#define LENOVO_CAPABILITY_DATA_01_GUID "7A8F5407-CB67-4D6E-B547-39B3BE018154"
 +
++#define ACPI_AC_NOTIFY_STATUS 0x80
++
++static DEFINE_MUTEX(list_mutex);
++
 +struct lwmi_cd01_priv {
++	struct notifier_block acpi_nb; /* ACPI events */
 +	struct wmi_device *wdev;
 +	struct cd01_list *list;
 +};
@@ -941,9 +1251,10 @@ index 000000000000..a5255e080e87
 + * @data: capdata01_list object pointer used to return the capability data.
 + *
 + * On lenovo-wmi-other's master bind, provide a pointer to the local capdata01
-+ * list. This is used to look up attribute data by the lenovo-wmi-other driver.
++ * list. This is used to call lwmi_cd01_get_data to look up attribute data
++ * from the lenovo-wmi-other driver.
 + *
-+ * Return: 0 on success, or on error.
++:* Return: 0 on success, or an error code.
 + */
 +static int lwmi_cd01_component_bind(struct device *cd01_dev,
 +				    struct device *om_dev, void *data)
@@ -964,31 +1275,43 @@ index 000000000000..a5255e080e87
 +};
 +
 +/**
++ * lwmi_cd01_get_data - Get the data of the specified attribute
++ * @dev: The lenovo-wmi-capdata01 parent device.
++ * @tunable_attr: The attribute to be populated.
++ *
++ * Retrieves the capability data 01 struct pointer for the given
++ * attribute for its specified thermal mode.
++ *
++ * Return: Either a pointer to capability data, or NULL.
++ */
++struct capdata01 *lwmi_cd01_get_data(struct cd01_list *list, u32 attribute_id)
++{
++	u8 idx;
++
++	guard(mutex)(&list_mutex);
++	for (idx = 0; idx < list->count; idx++) {
++		if (list->data[idx].id != attribute_id)
++			continue;
++		return &list->data[idx];
++	}
++	return NULL;
++}
++EXPORT_SYMBOL_NS_GPL(lwmi_cd01_get_data, "LENOVO_WMI_CD01");
++
++/**
 + * lwmi_cd01_setup() - Cache all WMI data block information
 + * @priv: lenovo-wmi-capdata01 driver data.
 + *
-+ * Allocate a cd01_list struct large enough to contain data from all WMI data
-+ * blocks provided by the interface. Then loop through each data block and
-+ * cache the data.
++ * Loop through each WMI data block and cache the data.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error.
 + */
-+static int lwmi_cd01_setup(struct lwmi_cd01_priv *priv)
++static int lwmi_cd01_cache(struct lwmi_cd01_priv *priv)
 +{
-+	struct cd01_list *list;
-+	size_t list_size;
-+	int count, idx;
++	int idx;
 +
-+	count = wmidev_instance_count(priv->wdev);
-+	list_size = struct_size(list, data, count);
-+
-+	list = devm_kzalloc(&priv->wdev->dev, list_size, GFP_KERNEL);
-+	if (!list)
-+		return -ENOMEM;
-+
-+	list->count = count;
-+
-+	for (idx = 0; idx < count; idx++) {
++	guard(mutex)(&list_mutex);
++	for (idx = 0; idx < priv->list->count; idx++) {
 +		union acpi_object *ret_obj __free(kfree) = NULL;
 +
 +		ret_obj = wmidev_block_query(priv->wdev, idx);
@@ -996,16 +1319,98 @@ index 000000000000..a5255e080e87
 +			return -ENODEV;
 +
 +		if (ret_obj->type != ACPI_TYPE_BUFFER ||
-+		    ret_obj->buffer.length < sizeof(struct capdata01))
++		    ret_obj->buffer.length < sizeof(priv->list->data[idx]))
 +			continue;
 +
-+		memcpy(&list->data[idx], ret_obj->buffer.pointer,
++		memcpy(&priv->list->data[idx], ret_obj->buffer.pointer,
 +		       ret_obj->buffer.length);
 +	}
 +
++	return 0;
++}
++
++/**
++ * lwmi_cd01_alloc() - Allocate a cd01_list struct in drvdata
++ * @priv: lenovo-wmi-capdata01 driver data.
++ *
++ * Allocate a cd01_list struct large enough to contain data from all WMI data
++ * blocks provided by the interface.
++ *
++ * Return: 0 on success, or an error.
++ */
++static int lwmi_cd01_alloc(struct lwmi_cd01_priv *priv)
++{
++	struct cd01_list *list;
++	size_t list_size;
++	int count;
++
++	count = wmidev_instance_count(priv->wdev);
++	list_size = struct_size(list, data, count);
++
++	guard(mutex)(&list_mutex);
++	list = devm_kzalloc(&priv->wdev->dev, list_size, GFP_KERNEL);
++	if (!list)
++		return -ENOMEM;
++
++	list->count = count;
 +	priv->list = list;
 +
 +	return 0;
++}
++
++/**
++ * lwmi_cd01_setup() - Cache all WMI data block information
++ * @priv: lenovo-wmi-capdata01 driver data.
++ *
++ * Allocate a cd01_list struct large enough to contain data from all WMI data
++ * blocks provided by the interface. Then loop through each data block and
++ * cache the data.
++ *
++ * Return: 0 on success, or an error code.
++ */
++static int lwmi_cd01_setup(struct lwmi_cd01_priv *priv)
++{
++	int ret;
++
++	ret = lwmi_cd01_alloc(priv);
++	if (ret)
++		return ret;
++
++	return lwmi_cd01_cache(priv);
++}
++
++/**
++ * lwmi_cd01_notifier_call() - Call method for lenovo-wmi-capdata01 driver notifier.
++ * block call chain.
++ * @nb: The notifier_block registered to lenovo-wmi-events driver.
++ * @action: Unused.
++ * @data: The ACPI event.
++ *
++ * For LWMI_EVENT_THERMAL_MODE, set current_mode and notify platform_profile
++ * of a change.
++ *
++ * Return: notifier_block status.
++ */
++static int lwmi_cd01_notifier_call(struct notifier_block *nb, unsigned long action,
++				   void *data)
++{
++	struct acpi_bus_event *event = (struct acpi_bus_event *)data;
++	struct lwmi_cd01_priv *priv;
++	int ret;
++
++
++	priv = container_of(nb, struct lwmi_cd01_priv, acpi_nb);
++
++	switch (event->type) {
++	case ACPI_AC_NOTIFY_STATUS:
++		ret = lwmi_cd01_cache(priv);
++		if (ret)
++			return NOTIFY_BAD;
++
++		return NOTIFY_OK;
++	default:
++		return NOTIFY_DONE;
++	}
 +}
 +
 +static int lwmi_cd01_probe(struct wmi_device *wdev, const void *context)
@@ -1024,6 +1429,9 @@ index 000000000000..a5255e080e87
 +	ret = lwmi_cd01_setup(priv);
 +	if (ret)
 +		return ret;
++
++	priv->acpi_nb.notifier_call = lwmi_cd01_notifier_call;
++	register_acpi_notifier(&priv->acpi_nb);
 +
 +	return component_add(&wdev->dev, &lwmi_cd01_component_ops);
 +}
@@ -1054,7 +1462,7 @@ index 000000000000..a5255e080e87
 + * @dev: Pointer to the capability data 01 parent device.
 + * @data: Unused void pointer for passing match criteria.
 + *
-+ * Return: bool.
++ * Return: int.
 + */
 +int lwmi_cd01_match(struct device *dev, void *data)
 +{
@@ -1070,10 +1478,10 @@ index 000000000000..a5255e080e87
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/platform/x86/lenovo-wmi-capdata01.h b/drivers/platform/x86/lenovo-wmi-capdata01.h
 new file mode 100644
-index 000000000000..15974ce5e008
+index 000000000000..ed4f3d86464d
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-capdata01.h
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,29 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +
 +/* Copyright(C) 2025 Derek J. Clark <derekjohn.clark@gmail.com> */
@@ -1099,17 +1507,18 @@ index 000000000000..15974ce5e008
 +	struct capdata01 data[];
 +};
 +
++struct capdata01 *lwmi_cd01_get_data(struct cd01_list *list, u32 attribute_id);
 +int lwmi_cd01_match(struct device *dev, void *data);
 +
 +#endif /* !_LENOVO_WMI_CAPDATA01_H_ */
 -- 
-2.49.0
+2.39.1
 
 
-From d03ee84dfe713cac40750ecc29f05373f6e5f87a Mon Sep 17 00:00:00 2001
+From b5fa121c8936753fb94be3697ec7861946536a5e Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:14 -0700
-Subject: [PATCH 5/7] platform/x86: Add Lenovo Gamezone WMI Driver
+Date: Sun, 27 Apr 2025 18:18:05 -0700
+Subject: [PATCH 6/7] platform/x86: Add Lenovo WMI Gamezone Driver
 
 Adds lenovo-wmi-gamezone driver which provides the Lenovo Gamezone WMI
 interface that comes on Lenovo "Gaming Series" hardware. Provides ACPI
@@ -1117,30 +1526,29 @@ platform profiles over WMI.
 
 Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
 ---
- MAINTAINERS                                |   2 +
+ MAINTAINERS                                |   1 +
  drivers/platform/x86/Kconfig               |  14 +
  drivers/platform/x86/Makefile              |   1 +
- drivers/platform/x86/lenovo-wmi-gamezone.c | 375 +++++++++++++++++++++
+ drivers/platform/x86/lenovo-wmi-gamezone.c | 374 +++++++++++++++++++++
  drivers/platform/x86/lenovo-wmi-gamezone.h |  20 ++
- 5 files changed, 412 insertions(+)
+ 5 files changed, 410 insertions(+)
  create mode 100644 drivers/platform/x86/lenovo-wmi-gamezone.c
  create mode 100644 drivers/platform/x86/lenovo-wmi-gamezone.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 856c17eddb9c..8e86265045b0 100644
+index ead88fc2958b..d2d8f33d23b3 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -13161,6 +13161,8 @@ F:	drivers/platform/x86/lenovo-wmi-capdata01.c
- F:	drivers/platform/x86/lenovo-wmi-capdata01.h
- F:	drivers/platform/x86/lenovo-wmi-events.c
- F:	drivers/platform/x86/lenovo-wmi-events.h
-+F:	drivers/platform/x86/lenovo-wmi-gamezone.c
-+F:	drivers/platform/x86/lenovo-wmi-gamezone.h
- F:	drivers/platform/x86/lenovo-wmi-helpers.c
- F:	drivers/platform/x86/lenovo-wmi-helpers.h
+@@ -13159,6 +13159,7 @@ F:	Documentation/wmi/devices/lenovo-wmi-gamezone.rst
+ F:	Documentation/wmi/devices/lenovo-wmi-other.rst
+ F:	drivers/platform/x86/lenovo-wmi-capdata01.*
+ F:	drivers/platform/x86/lenovo-wmi-events.*
++F:	drivers/platform/x86/lenovo-wmi-gamezone.*
+ F:	drivers/platform/x86/lenovo-wmi-helpers.*
  
+ LENOVO WMI HOTKEY UTILITIES DRIVER
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index ee94239fc555..f2e885a65fe5 100644
+index 491ded37c862..2bd7ae78afde 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -484,6 +484,20 @@ config LENOVO_WMI_HELPERS
@@ -1165,10 +1573,10 @@ index ee94239fc555..f2e885a65fe5 100644
  	tristate
  	depends on ACPI_WMI
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 975180f8db15..7dceb2f0b2ee 100644
+index 4c2a8db209a8..4c1eaeb2e329 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
-@@ -75,6 +75,7 @@ obj-$(CONFIG_YT2_1380)		+= lenovo-yoga-tab2-pro-1380-fastcharger.o
+@@ -76,6 +76,7 @@ obj-$(CONFIG_YT2_1380)		+= lenovo-yoga-tab2-pro-1380-fastcharger.o
  obj-$(CONFIG_LENOVO_WMI_CAMERA)	+= lenovo-wmi-camera.o
  obj-$(CONFIG_LENOVO_WMI_DATA01)	+= lenovo-wmi-capdata01.o
  obj-$(CONFIG_LENOVO_WMI_EVENTS)	+= lenovo-wmi-events.o
@@ -1178,10 +1586,10 @@ index 975180f8db15..7dceb2f0b2ee 100644
  # Intel
 diff --git a/drivers/platform/x86/lenovo-wmi-gamezone.c b/drivers/platform/x86/lenovo-wmi-gamezone.c
 new file mode 100644
-index 000000000000..2e6d5e7faadf
+index 000000000000..713f7dbbabe2
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-gamezone.c
-@@ -0,0 +1,375 @@
+@@ -0,0 +1,374 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Lenovo GameZone WMI interface driver.
@@ -1192,6 +1600,7 @@ index 000000000000..2e6d5e7faadf
 + * Copyright(C) 2025 Derek J. Clark <derekjohn.clark@gmail.com>
 + */
 +
++#include "linux/cleanup.h"
 +#include <linux/acpi.h>
 +#include <linux/dmi.h>
 +#include <linux/export.h>
@@ -1209,24 +1618,24 @@ index 000000000000..2e6d5e7faadf
 +
 +#define LENOVO_GAMEZONE_GUID "887B54E3-DDDC-4B2C-8B88-68A26A8835D0"
 +
-+#define LWMI_GZ_METHOD_ID_SMARTFAN_SUPP 43
++#define LWMI_GZ_METHOD_ID_SMARTFAN_SUP 43
 +#define LWMI_GZ_METHOD_ID_SMARTFAN_SET 44
 +#define LWMI_GZ_METHOD_ID_SMARTFAN_GET 45
 +
 +static BLOCKING_NOTIFIER_HEAD(gz_chain_head);
-+static DEFINE_SPINLOCK(gz_lock);
++static DEFINE_SPINLOCK(gz_mode_lock); /* lwmi_gz_priv.current_mode RW lock */
 +
 +struct lwmi_gz_priv {
 +	enum thermal_mode current_mode;
 +	struct notifier_block event_nb;
 +	struct notifier_block mode_nb;
 +	struct wmi_device *wdev;
-+	bool extreme_supported;
++	int extreme_supported;
 +	struct device *ppdev;
 +};
 +
 +struct quirk_entry {
-+	bool extreme_supported;
++	int extreme_supported;
 +};
 +
 +static struct quirk_entry quirk_no_extreme_bug = {
@@ -1255,9 +1664,9 @@ index 000000000000..2e6d5e7faadf
 +
 +	switch (cmd) {
 +	case LWMI_EVENT_THERMAL_MODE:
-+		spin_lock(&gz_lock);
-+		priv->current_mode = *mode;
-+		spin_unlock(&gz_lock);
++		scoped_guard(spinlock, &gz_mode_lock) {
++			priv->current_mode = *mode;
++		}
 +		platform_profile_notify(priv->ppdev);
 +		return NOTIFY_STOP;
 +	default:
@@ -1271,12 +1680,12 @@ index 000000000000..2e6d5e7faadf
 + * @wdev: The Gamezone WMI device.
 + * @supported: Pointer to return the support level with.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_gz_thermal_mode_supported(struct wmi_device *wdev,
 +					  int *supported)
 +{
-+	return lwmi_dev_evaluate_int(wdev, 0x0, LWMI_GZ_METHOD_ID_SMARTFAN_SUPP,
++	return lwmi_dev_evaluate_int(wdev, 0x0, LWMI_GZ_METHOD_ID_SMARTFAN_SUP,
 +				     0, 0, supported);
 +}
 +
@@ -1285,7 +1694,7 @@ index 000000000000..2e6d5e7faadf
 + * @wdev: The Gamezone interface WMI device.
 + * @mode: Pointer to return the thermal mode with.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_gz_thermal_mode_get(struct wmi_device *wdev,
 +				    enum thermal_mode *mode)
@@ -1302,7 +1711,7 @@ index 000000000000..2e6d5e7faadf
 + * Call lwmi_gz_thermal_mode_get and convert the thermal mode into a platform
 + * profile based on the support level of the interface.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_gz_profile_get(struct device *dev,
 +			       enum platform_profile_option *profile)
@@ -1339,9 +1748,8 @@ index 000000000000..2e6d5e7faadf
 +		return -EINVAL;
 +	}
 +
-+	spin_lock(&gz_lock);
++	guard(spinlock)(&gz_mode_lock);
 +	priv->current_mode = mode;
-+	spin_unlock(&gz_lock);
 +
 +	return 0;
 +}
@@ -1354,7 +1762,7 @@ index 000000000000..2e6d5e7faadf
 + * Convert the given platform profile into a thermal mode based on the support
 + * level of the interface, then call the WMI method to set the thermal mode.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_gz_profile_set(struct device *dev,
 +			       enum platform_profile_option profile)
@@ -1392,13 +1800,12 @@ index 000000000000..2e6d5e7faadf
 +
 +	ret = lwmi_dev_evaluate_int(priv->wdev, 0x0,
 +				    LWMI_GZ_METHOD_ID_SMARTFAN_SET,
-+				    (unsigned char *)&args, sizeof(args), NULL);
++				    (u8 *)&args, sizeof(args), NULL);
 +	if (ret)
 +		return ret;
 +
-+	spin_lock(&gz_lock);
++	guard(spinlock)(&gz_mode_lock);
 +	priv->current_mode = mode;
-+	spin_unlock(&gz_lock);
 +
 +	return 0;
 +}
@@ -1433,7 +1840,7 @@ index 000000000000..2e6d5e7faadf
 +};
 +
 +/**
-+ * extreme_supported() - Evaluate if a device supports extreme thermal mode.
++ * lwmi_gz_extreme_supported() - Evaluate if a device supports extreme thermal mode.
 + * @profile_support_ver: Version of the WMI interface.
 + *
 + * Determine if the extreme thermal mode is supported by the hardware.
@@ -1442,9 +1849,9 @@ index 000000000000..2e6d5e7faadf
 + * extreme mode but have an incomplete entry in the BIOS. To ensure this
 + * cannot be set, quirk them to prevent assignment.
 + *
-+ * Return: bool.
++ * Return: int.
 + */
-+static bool extreme_supported(int profile_support_ver)
++static int lwmi_gz_extreme_supported(int profile_support_ver)
 +{
 +	const struct dmi_system_id *dmi_id;
 +	struct quirk_entry *quirks;
@@ -1469,7 +1876,7 @@ index 000000000000..2e6d5e7faadf
 + * Determine if thermal mode is supported, and if so to what feature level.
 + * Then enable all supported platform profiles.
 + *
-+ * Return: 0 on success, or on error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_gz_platform_profile_probe(void *drvdata, unsigned long *choices)
 +{
@@ -1484,7 +1891,7 @@ index 000000000000..2e6d5e7faadf
 +	if (profile_support_ver < 1)
 +		return -ENODEV;
 +
-+	priv->extreme_supported = extreme_supported(profile_support_ver);
++	priv->extreme_supported = lwmi_gz_extreme_supported(profile_support_ver);
 +
 +	set_bit(PLATFORM_PROFILE_LOW_POWER, choices);
 +	set_bit(PLATFORM_PROFILE_BALANCED, choices);
@@ -1559,7 +1966,7 @@ index 000000000000..2e6d5e7faadf
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/platform/x86/lenovo-wmi-gamezone.h b/drivers/platform/x86/lenovo-wmi-gamezone.h
 new file mode 100644
-index 000000000000..1f8366b67b49
+index 000000000000..75ef16bf0798
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-gamezone.h
 @@ -0,0 +1,20 @@
@@ -1575,22 +1982,22 @@ index 000000000000..1f8366b67b49
 +};
 +
 +enum thermal_mode {
-+	LWMI_GZ_THERMAL_MODE_QUIET = 0x01,
-+	LWMI_GZ_THERMAL_MODE_BALANCED = 0x02,
++	LWMI_GZ_THERMAL_MODE_QUIET =	   0x01,
++	LWMI_GZ_THERMAL_MODE_BALANCED =	   0x02,
 +	LWMI_GZ_THERMAL_MODE_PERFORMANCE = 0x03,
-+	LWMI_GZ_THERMAL_MODE_EXTREME = 0xE0, /* Ver 6+ */
-+	LWMI_GZ_THERMAL_MODE_CUSTOM = 0xFF,
++	LWMI_GZ_THERMAL_MODE_EXTREME =	   0xE0, /* Ver 6+ */
++	LWMI_GZ_THERMAL_MODE_CUSTOM =	   0xFF,
 +};
 +
 +#endif /* !_LENOVO_WMI_GAMEZONE_H_ */
 -- 
-2.49.0
+2.39.1
 
 
-From a7d4a9233d93cd050e8ad38acee15d7f6be97182 Mon Sep 17 00:00:00 2001
+From 83a790219d5036c4d21b54c53de41bac33041d5e Mon Sep 17 00:00:00 2001
 From: "Derek J. Clark" <derekjohn.clark@gmail.com>
-Date: Mon, 7 Apr 2025 18:28:15 -0700
-Subject: [PATCH 6/7] platform/x86: Add Lenovo Other Mode WMI Driver
+Date: Sun, 27 Apr 2025 18:18:06 -0700
+Subject: [PATCH 7/7] platform/x86: Add Lenovo WMI Other Mode Driver
 
 Adds lenovo-wmi-other driver which provides the Lenovo "Other Mode" WMI
 interface that comes on some Lenovo "Gaming Series" hardware. Provides a
@@ -1599,31 +2006,30 @@ SPPT, and FPPT.
 
 Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
 ---
- MAINTAINERS                                |   2 +
+ MAINTAINERS                                |   1 +
  drivers/platform/x86/Kconfig               |  15 +
  drivers/platform/x86/Makefile              |   1 +
  drivers/platform/x86/lenovo-wmi-gamezone.c |  35 ++
- drivers/platform/x86/lenovo-wmi-other.c    | 677 +++++++++++++++++++++
+ drivers/platform/x86/lenovo-wmi-other.c    | 655 +++++++++++++++++++++
  drivers/platform/x86/lenovo-wmi-other.h    |  16 +
- 6 files changed, 746 insertions(+)
+ 6 files changed, 723 insertions(+)
  create mode 100644 drivers/platform/x86/lenovo-wmi-other.c
  create mode 100644 drivers/platform/x86/lenovo-wmi-other.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 8e86265045b0..03266382bb52 100644
+index d2d8f33d23b3..e096ed35bd2f 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -13165,6 +13165,8 @@ F:	drivers/platform/x86/lenovo-wmi-gamezone.c
- F:	drivers/platform/x86/lenovo-wmi-gamezone.h
- F:	drivers/platform/x86/lenovo-wmi-helpers.c
- F:	drivers/platform/x86/lenovo-wmi-helpers.h
-+F:	drivers/platform/x86/lenovo-wmi-other.c
-+F:	drivers/platform/x86/lenovo-wmi-other.h
+@@ -13161,6 +13161,7 @@ F:	drivers/platform/x86/lenovo-wmi-capdata01.*
+ F:	drivers/platform/x86/lenovo-wmi-events.*
+ F:	drivers/platform/x86/lenovo-wmi-gamezone.*
+ F:	drivers/platform/x86/lenovo-wmi-helpers.*
++F:	drivers/platform/x86/lenovo-wmi-other.*
  
- LETSKETCH HID TABLET DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
+ LENOVO WMI HOTKEY UTILITIES DRIVER
+ M:	Jackie Dong <xy-jackie@139.com>
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index f2e885a65fe5..37f8d33fd9eb 100644
+index 2bd7ae78afde..6454bf6de6f0 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -502,6 +502,21 @@ config LENOVO_WMI_DATA01
@@ -1649,10 +2055,10 @@ index f2e885a65fe5..37f8d33fd9eb 100644
  	tristate "Lenovo IdeaPad Laptop Extras"
  	depends on ACPI
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 7dceb2f0b2ee..96b91b83427a 100644
+index 4c1eaeb2e329..370f9226b664 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_LENOVO_WMI_DATA01)	+= lenovo-wmi-capdata01.o
+@@ -78,6 +78,7 @@ obj-$(CONFIG_LENOVO_WMI_DATA01)	+= lenovo-wmi-capdata01.o
  obj-$(CONFIG_LENOVO_WMI_EVENTS)	+= lenovo-wmi-events.o
  obj-$(CONFIG_LENOVO_WMI_GAMEZONE)	+= lenovo-wmi-gamezone.o
  obj-$(CONFIG_LENOVO_WMI_HELPERS)	+= lenovo-wmi-helpers.o
@@ -1661,10 +2067,10 @@ index 7dceb2f0b2ee..96b91b83427a 100644
  # Intel
  obj-y				+= intel/
 diff --git a/drivers/platform/x86/lenovo-wmi-gamezone.c b/drivers/platform/x86/lenovo-wmi-gamezone.c
-index 2e6d5e7faadf..9c80561f931c 100644
+index 713f7dbbabe2..5f092790956b 100644
 --- a/drivers/platform/x86/lenovo-wmi-gamezone.c
 +++ b/drivers/platform/x86/lenovo-wmi-gamezone.c
-@@ -22,6 +22,7 @@
+@@ -23,6 +23,7 @@
  #include "lenovo-wmi-events.h"
  #include "lenovo-wmi-gamezone.h"
  #include "lenovo-wmi-helpers.h"
@@ -1672,7 +2078,7 @@ index 2e6d5e7faadf..9c80561f931c 100644
  
  #define LENOVO_GAMEZONE_GUID "887B54E3-DDDC-4B2C-8B88-68A26A8835D0"
  
-@@ -49,6 +50,34 @@ static struct quirk_entry quirk_no_extreme_bug = {
+@@ -50,6 +51,34 @@ static struct quirk_entry quirk_no_extreme_bug = {
  	.extreme_supported = false,
  };
  
@@ -1707,7 +2113,7 @@ index 2e6d5e7faadf..9c80561f931c 100644
  /**
   * lwmi_gz_event_call() - Call method for lenovo-wmi-events driver notifier.
   * block call chain.
-@@ -347,6 +376,11 @@ static int lwmi_gz_probe(struct wmi_device *wdev, const void *context)
+@@ -346,6 +375,11 @@ static int lwmi_gz_probe(struct wmi_device *wdev, const void *context)
  	if (ret)
  		return ret;
  
@@ -1719,7 +2125,7 @@ index 2e6d5e7faadf..9c80561f931c 100644
  	return 0;
  }
  
-@@ -369,6 +403,7 @@ module_wmi_driver(lwmi_gz_driver);
+@@ -368,6 +402,7 @@ module_wmi_driver(lwmi_gz_driver);
  
  MODULE_IMPORT_NS("LENOVO_WMI_EVENTS");
  MODULE_IMPORT_NS("LENOVO_WMI_HELPERS");
@@ -1729,10 +2135,10 @@ index 2e6d5e7faadf..9c80561f931c 100644
  MODULE_DESCRIPTION("Lenovo GameZone WMI Driver");
 diff --git a/drivers/platform/x86/lenovo-wmi-other.c b/drivers/platform/x86/lenovo-wmi-other.c
 new file mode 100644
-index 000000000000..342883a90270
+index 000000000000..18a48f9103d6
 --- /dev/null
 +++ b/drivers/platform/x86/lenovo-wmi-other.c
-@@ -0,0 +1,677 @@
+@@ -0,0 +1,655 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Lenovo Other Mode WMI interface driver.
@@ -1952,28 +2358,6 @@ index 000000000000..342883a90270
 +}
 +
 +/**
-+ * attr_capdata01_get - Get the data of the specified attribute
-+ * @tunable_attr: The attribute to be populated.
-+ *
-+ * Retrieves the capability data 01 struct pointer for the given
-+ * attribute for its specified thermal mode.
-+ *
-+ * Return: Either a pointer to capability data, or NULL.
-+ */
-+static struct capdata01 *attr_capdata01_get_data(struct lwmi_om_priv *priv,
-+						 u32 attribute_id)
-+{
-+	int idx;
-+
-+	for (idx = 0; idx < priv->cd01_list->count; idx++) {
-+		if (priv->cd01_list->data[idx].id != attribute_id)
-+			continue;
-+		return &priv->cd01_list->data[idx];
-+	}
-+	return NULL;
-+}
-+
-+/**
 + * attr_capdata01_show() - Get the value of the specified attribute property
 + *
 + * @kobj: Pointer to the driver object.
@@ -1989,7 +2373,7 @@ index 000000000000..342883a90270
 + *
 + * If the WMI is success the sysfs attribute is notified.
 + *
-+ * Return: Either number of characters written to buf, or an error.
++ * Return: Either number of characters written to buf, or an error code.
 + */
 +static ssize_t attr_capdata01_show(struct kobject *kobj,
 +				   struct kobj_attribute *kattr, char *buf,
@@ -2007,7 +2391,7 @@ index 000000000000..342883a90270
 +		FIELD_PREP(LWMI_ATTR_MODE_ID_MASK, LWMI_GZ_THERMAL_MODE_CUSTOM) |
 +		FIELD_PREP(LWMI_ATTR_TYPE_ID_MASK, tunable_attr->type_id);
 +
-+	capdata = attr_capdata01_get_data(priv, attribute_id);
++	capdata = lwmi_cd01_get_data(priv->cd01_list, attribute_id);
 +
 +	if (!capdata)
 +		return -ENODEV;
@@ -2044,12 +2428,12 @@ index 000000000000..342883a90270
 + * lenovo-wmi-gamezone driver and error is returned if the result is not
 + * "custom". This function is intended to be generic so it can be called from
 + * any integer attribute's "_store" function. The integer to be sent to the WMI
-+ * method is range checked and an error is returned if out of range.
++ * method is range checked and an error code is returned if out of range.
 + *
 + * If the value is valid and WMI is success, then the sysfs attribute is
 + * notified.
 + *
-+ * Return: Either count, or an error.
++ * Return: Either count, or an error code.
 + */
 +static ssize_t attr_current_value_store(struct kobject *kobj,
 +					struct kobj_attribute *kattr,
@@ -2077,7 +2461,7 @@ index 000000000000..342883a90270
 +		FIELD_PREP(LWMI_ATTR_MODE_ID_MASK, mode) |
 +		FIELD_PREP(LWMI_ATTR_TYPE_ID_MASK, tunable_attr->type_id);
 +
-+	capdata = attr_capdata01_get_data(priv, attribute_id);
++	capdata = lwmi_cd01_get_data(priv->cd01_list, attribute_id);
 +
 +	if (!capdata)
 +		return -ENODEV;
@@ -2115,7 +2499,7 @@ index 000000000000..342883a90270
 + *
 + * If the WMI is success the sysfs attribute is notified.
 + *
-+ * Return: Either number of characters written to buf, or an error.
++ * Return: Either number of characters written to buf, or an error code.
 + */
 +static ssize_t attr_current_value_show(struct kobject *kobj,
 +				       struct kobj_attribute *kattr, char *buf,
@@ -2245,7 +2629,7 @@ index 000000000000..342883a90270
 + * lwmi_om_fw_attr_add() - Register all firmware_attributes_class members
 + * @priv: The Other Mode driver data.
 + *
-+ * Return: Either 0, or an error.
++ * Return: Either 0, or an error code.
 + */
 +static int lwmi_om_fw_attr_add(struct lwmi_om_priv *priv)
 +{
@@ -2317,7 +2701,7 @@ index 000000000000..342883a90270
 + * is only valid while the capdata01 interface exists. Finally, register all
 + * firmware attribute groups.
 + *
-+ * Return: 0 on success, or an error.
++ * Return: 0 on success, or an error code.
 + */
 +static int lwmi_om_master_bind(struct device *dev)
 +{
@@ -2433,405 +2817,5 @@ index 000000000000..49bc3521e184
 +
 +#endif /* !_LENOVO_WMI_OTHER_H_ */
 -- 
-2.49.0
-
-
-From 835cdef956e27222b9f588f9ce79026e2c4d5c57 Mon Sep 17 00:00:00 2001
-From: honjow <honjow311@gmail.com>
-Date: Thu, 24 Apr 2025 00:17:04 +0800
-Subject: [PATCH 7/7] platform/x86: Update cache on ACPI AC  events
-
- Modifies current behavior of lenovo-wmi-capdata01 and lenovo-wmi-other
-to re-cache the lenovo-wmi-capdata01 list upon AC connect/disconnect.
-The LENOVO_CAPABILITY_DATA_01 data blocks change value based on the
-presence of AC input to limit total output to under what the max power
-draw of the battery is capable of.
----
- drivers/platform/x86/lenovo-wmi-capdata01.c | 156 ++++++++++++++++----
- drivers/platform/x86/lenovo-wmi-capdata01.h |   1 +
- drivers/platform/x86/lenovo-wmi-other.c     |  54 +++----
- 3 files changed, 148 insertions(+), 63 deletions(-)
-
-diff --git a/drivers/platform/x86/lenovo-wmi-capdata01.c b/drivers/platform/x86/lenovo-wmi-capdata01.c
-index a5255e080e87..b43a0a8f0024 100644
---- a/drivers/platform/x86/lenovo-wmi-capdata01.c
-+++ b/drivers/platform/x86/lenovo-wmi-capdata01.c
-@@ -19,6 +19,7 @@
- #include <linux/export.h>
- #include <linux/gfp_types.h>
- #include <linux/module.h>
-+#include <linux/notifier.h>
- #include <linux/overflow.h>
- #include <linux/types.h>
- #include <linux/wmi.h>
-@@ -27,7 +28,12 @@
- 
- #define LENOVO_CAPABILITY_DATA_01_GUID "7A8F5407-CB67-4D6E-B547-39B3BE018154"
- 
-+#define ACPI_AC_NOTIFY_STATUS 0x80
-+
-+static DEFINE_MUTEX(list_mutex);
-+
- struct lwmi_cd01_priv {
-+	struct notifier_block acpi_nb; /* ACPI events */
- 	struct wmi_device *wdev;
- 	struct cd01_list *list;
- };
-@@ -36,24 +42,20 @@ struct lwmi_cd01_priv {
-  * lwmi_cd01_component_bind() - Bind component to master device.
-  * @cd01_dev: Pointer to the lenovo-wmi-capdata01 driver parent device.
-  * @om_dev: Pointer to the lenovo-wmi-other driver parent device.
-- * @data: capdata01_list object pointer used to return the capability data.
-+ * @data: device struct pointer used to return cd01_dev.
-  *
-  * On lenovo-wmi-other's master bind, provide a pointer to the local capdata01
-- * list. This is used to look up attribute data by the lenovo-wmi-other driver.
-+ * parent device. This is used to call lwmi_cd01_get_data to look up attribute
-+ * data by the lenovo-wmi-other driver.
-  *
-- * Return: 0 on success, or on error.
-+ * Return: 0 on success, or an error.
-  */
- static int lwmi_cd01_component_bind(struct device *cd01_dev,
- 				    struct device *om_dev, void *data)
- {
--	struct lwmi_cd01_priv *priv = dev_get_drvdata(cd01_dev);
--	struct cd01_list **cd01_list = data;
--
--	if (!priv->list)
--		return -ENODEV;
--
--	*cd01_list = priv->list;
-+	struct device **tmp_dev = data;
- 
-+	*tmp_dev = cd01_dev;
- 	return 0;
- }
- 
-@@ -61,49 +63,144 @@ static const struct component_ops lwmi_cd01_component_ops = {
- 	.bind = lwmi_cd01_component_bind,
- };
- 
-+/**
-+ * lwmi_cd01_get_data - Get the data of the specified attribute
-+ * @dev: The lenovo-wmi-capdata01 parent device.
-+ * @tunable_attr: The attribute to be populated.
-+ *
-+ * Retrieves the capability data 01 struct pointer for the given
-+ * attribute for its specified thermal mode.
-+ *
-+ * Return: Either a pointer to capability data, or NULL.
-+ */
-+struct capdata01 *lwmi_cd01_get_data(struct device *dev, u32 attribute_id)
-+{
-+	struct lwmi_cd01_priv *priv = dev_get_drvdata(dev);
-+	int idx;
-+
-+	guard(mutex)(&list_mutex);
-+	for (idx = 0; idx < priv->list->count; idx++) {
-+		if (priv->list->data[idx].id != attribute_id)
-+			continue;
-+		return &priv->list->data[idx];
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL_NS_GPL(lwmi_cd01_get_data, "LENOVO_WMI_CD01");
-+
- /**
-  * lwmi_cd01_setup() - Cache all WMI data block information
-  * @priv: lenovo-wmi-capdata01 driver data.
-  *
-+ * Loop through each wmi data block and cache the data.
-+ *
-+ * Return: 0 on success, or an error.
-+ */
-+static int lwmi_cd01_cache(struct lwmi_cd01_priv *priv)
-+{
-+	int idx;
-+
-+	guard(mutex)(&list_mutex);
-+	for (idx = 0; idx < priv->list->count; idx++) {
-+		union acpi_object *ret_obj __free(kfree) = NULL;
-+
-+		ret_obj = wmidev_block_query(priv->wdev, idx);
-+		if (!ret_obj)
-+			return -ENODEV;
-+
-+		if (ret_obj->type != ACPI_TYPE_BUFFER ||
-+		    ret_obj->buffer.length < sizeof(struct capdata01))
-+			continue;
-+
-+		memcpy(&priv->list->data[idx], ret_obj->buffer.pointer,
-+		       ret_obj->buffer.length);
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * lwmi_cd01_alloc() - Allocate a cd01_list struct in drvdata
-+ * @priv: lenovo-wmi-capdata01 driver data.
-+ *
-  * Allocate a cd01_list struct large enough to contain data from all WMI data
-- * blocks provided by the interface. Then loop through each data block and
-- * cache the data.
-+ * blocks provided by the interface.
-  *
-- * Return: 0 on success, or on error.
-+ * Return: 0 on success, or an error.
-  */
--static int lwmi_cd01_setup(struct lwmi_cd01_priv *priv)
-+static int lwmi_cd01_alloc(struct lwmi_cd01_priv *priv)
- {
- 	struct cd01_list *list;
- 	size_t list_size;
--	int count, idx;
-+	int count;
- 
- 	count = wmidev_instance_count(priv->wdev);
- 	list_size = struct_size(list, data, count);
- 
-+	guard(mutex)(&list_mutex);
- 	list = devm_kzalloc(&priv->wdev->dev, list_size, GFP_KERNEL);
- 	if (!list)
- 		return -ENOMEM;
- 
- 	list->count = count;
-+	priv->list = list;
- 
--	for (idx = 0; idx < count; idx++) {
--		union acpi_object *ret_obj __free(kfree) = NULL;
-+	return 0;
-+}
- 
--		ret_obj = wmidev_block_query(priv->wdev, idx);
--		if (!ret_obj)
--			return -ENODEV;
-+/**
-+ * lwmi_cd01_setup() - Cache all WMI data block information
-+ * @priv: lenovo-wmi-capdata01 driver data.
-+ *
-+ * Allocate a cd01_list struct large enough to contain data from all WMI data
-+ * blocks provided by the interface. Then loop through each data block and
-+ * cache the data.
-+ *
-+ * Return: 0 on success, or an error.
-+ */
-+static int lwmi_cd01_setup(struct lwmi_cd01_priv *priv)
-+{
-+	int ret;
- 
--		if (ret_obj->type != ACPI_TYPE_BUFFER ||
--		    ret_obj->buffer.length < sizeof(struct capdata01))
--			continue;
-+	ret = lwmi_cd01_alloc(priv);
-+	if (ret)
-+		return ret;
- 
--		memcpy(&list->data[idx], ret_obj->buffer.pointer,
--		       ret_obj->buffer.length);
--	}
-+	return lwmi_cd01_cache(priv);
-+}
- 
--	priv->list = list;
-+/**
-+ * lwmi_cd01_notifier_call() - Call method for lenovo-wmi-capdata01 driver notifier.
-+ * block call chain.
-+ * @nb: The notifier_block registered to lenovo-wmi-events driver.
-+ * @action: Unused.
-+ * @data: The ACPI event.
-+ *
-+ * For LWMI_EVENT_THERMAL_MODE, set current_mode and notify platform_profile
-+ * of a change.
-+ *
-+ * Return: notifier_block status.
-+ */
-+static int lwmi_cd01_notifier_call(struct notifier_block *nb, unsigned long action,
-+				   void *data)
-+{
-+	struct acpi_bus_event *event = (struct acpi_bus_event *)data;
-+	struct lwmi_cd01_priv *priv;
-+	int ret;
- 
--	return 0;
-+
-+	priv = container_of(nb, struct lwmi_cd01_priv, acpi_nb);
-+
-+	switch (event->type) {
-+	case ACPI_AC_NOTIFY_STATUS:
-+		ret = lwmi_cd01_cache(priv);
-+		if (ret)
-+			return NOTIFY_BAD;
-+
-+		return NOTIFY_OK;
-+	default:
-+		return NOTIFY_DONE;
-+	}
- }
- 
- static int lwmi_cd01_probe(struct wmi_device *wdev, const void *context)
-@@ -123,6 +220,9 @@ static int lwmi_cd01_probe(struct wmi_device *wdev, const void *context)
- 	if (ret)
- 		return ret;
- 
-+	priv->acpi_nb.notifier_call = lwmi_cd01_notifier_call;
-+	register_acpi_notifier(&priv->acpi_nb);
-+
- 	return component_add(&wdev->dev, &lwmi_cd01_component_ops);
- }
- 
-diff --git a/drivers/platform/x86/lenovo-wmi-capdata01.h b/drivers/platform/x86/lenovo-wmi-capdata01.h
-index 15974ce5e008..f6ccb0d997c6 100644
---- a/drivers/platform/x86/lenovo-wmi-capdata01.h
-+++ b/drivers/platform/x86/lenovo-wmi-capdata01.h
-@@ -23,6 +23,7 @@ struct cd01_list {
- 	struct capdata01 data[];
- };
- 
-+struct capdata01 *lwmi_cd01_get_data(struct device *dev, u32 attribute_id);
- int lwmi_cd01_match(struct device *dev, void *data);
- 
- #endif /* !_LENOVO_WMI_CAPDATA01_H_ */
-diff --git a/drivers/platform/x86/lenovo-wmi-other.c b/drivers/platform/x86/lenovo-wmi-other.c
-index 342883a90270..7d5a47b84b68 100644
---- a/drivers/platform/x86/lenovo-wmi-other.c
-+++ b/drivers/platform/x86/lenovo-wmi-other.c
-@@ -74,11 +74,11 @@ enum attribute_property {
- struct lwmi_om_priv {
- 	struct component_master_ops *ops;
- 	/* *cd01_list is only valid after master bind and while capdata01 exists */
--	struct cd01_list *cd01_list;
- 	struct device *fw_attr_dev;
- 	struct kset *fw_attr_kset;
- 	struct notifier_block nb;
- 	struct wmi_device *wdev;
-+	struct device *cd01_dev;
- 	int ida_id;
- };
- 
-@@ -193,7 +193,8 @@ static int lwmi_om_notifier_call(enum thermal_mode *mode)
- {
- 	int ret;
- 
--	ret = blocking_notifier_call_chain(&om_chain_head, LWMI_GZ_GET_THERMAL_MODE, &mode);
-+	ret = blocking_notifier_call_chain(&om_chain_head,
-+					   LWMI_GZ_GET_THERMAL_MODE, &mode);
- 	if ((ret & ~NOTIFY_STOP_MASK) != NOTIFY_OK)
- 		return -EINVAL;
- 
-@@ -216,28 +217,6 @@ static ssize_t int_type_show(struct kobject *kobj, struct kobj_attribute *kattr,
- 	return sysfs_emit(buf, "integer\n");
- }
- 
--/**
-- * attr_capdata01_get - Get the data of the specified attribute
-- * @tunable_attr: The attribute to be populated.
-- *
-- * Retrieves the capability data 01 struct pointer for the given
-- * attribute for its specified thermal mode.
-- *
-- * Return: Either a pointer to capability data, or NULL.
-- */
--static struct capdata01 *attr_capdata01_get_data(struct lwmi_om_priv *priv,
--						 u32 attribute_id)
--{
--	int idx;
--
--	for (idx = 0; idx < priv->cd01_list->count; idx++) {
--		if (priv->cd01_list->data[idx].id != attribute_id)
--			continue;
--		return &priv->cd01_list->data[idx];
--	}
--	return NULL;
--}
--
- /**
-  * attr_capdata01_show() - Get the value of the specified attribute property
-  *
-@@ -269,10 +248,11 @@ static ssize_t attr_capdata01_show(struct kobject *kobj,
- 	attribute_id =
- 		FIELD_PREP(LWMI_ATTR_DEV_ID_MASK, tunable_attr->device_id) |
- 		FIELD_PREP(LWMI_ATTR_FEAT_ID_MASK, tunable_attr->feature_id) |
--		FIELD_PREP(LWMI_ATTR_MODE_ID_MASK, LWMI_GZ_THERMAL_MODE_CUSTOM) |
-+		FIELD_PREP(LWMI_ATTR_MODE_ID_MASK,
-+			   LWMI_GZ_THERMAL_MODE_CUSTOM) |
- 		FIELD_PREP(LWMI_ATTR_TYPE_ID_MASK, tunable_attr->type_id);
- 
--	capdata = attr_capdata01_get_data(priv, attribute_id);
-+	capdata = lwmi_cd01_get_data(priv->cd01_dev, attribute_id);
- 
- 	if (!capdata)
- 		return -ENODEV;
-@@ -342,7 +322,7 @@ static ssize_t attr_current_value_store(struct kobject *kobj,
- 		FIELD_PREP(LWMI_ATTR_MODE_ID_MASK, mode) |
- 		FIELD_PREP(LWMI_ATTR_TYPE_ID_MASK, tunable_attr->type_id);
- 
--	capdata = attr_capdata01_get_data(priv, attribute_id);
-+	capdata = lwmi_cd01_get_data(priv->cd01_dev, attribute_id);
- 
- 	if (!capdata)
- 		return -ENODEV;
-@@ -530,14 +510,16 @@ static int lwmi_om_fw_attr_add(struct lwmi_om_priv *priv)
- 		goto err_free_ida;
- 	}
- 
--	priv->fw_attr_kset = kset_create_and_add("attributes", NULL, &priv->fw_attr_dev->kobj);
-+	priv->fw_attr_kset = kset_create_and_add("attributes", NULL,
-+						 &priv->fw_attr_dev->kobj);
- 	if (!priv->fw_attr_kset) {
- 		err = -ENOMEM;
- 		goto err_destroy_classdev;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(cd01_attr_groups) - 1; i++) {
--		err = sysfs_create_group(&priv->fw_attr_kset->kobj, cd01_attr_groups[i].attr_group);
-+		err = sysfs_create_group(&priv->fw_attr_kset->kobj,
-+					 cd01_attr_groups[i].attr_group);
- 		if (err)
- 			goto err_remove_groups;
- 
-@@ -547,7 +529,8 @@ static int lwmi_om_fw_attr_add(struct lwmi_om_priv *priv)
- 
- err_remove_groups:
- 	while (i--)
--		sysfs_remove_group(&priv->fw_attr_kset->kobj, cd01_attr_groups[i].attr_group);
-+		sysfs_remove_group(&priv->fw_attr_kset->kobj,
-+				   cd01_attr_groups[i].attr_group);
- 
- 	kset_unregister(priv->fw_attr_kset);
- 
-@@ -566,7 +549,8 @@ static int lwmi_om_fw_attr_add(struct lwmi_om_priv *priv)
- static void lwmi_om_fw_attr_remove(struct lwmi_om_priv *priv)
- {
- 	for (unsigned int i = 0; i < ARRAY_SIZE(cd01_attr_groups) - 1; i++)
--		sysfs_remove_group(&priv->fw_attr_kset->kobj, cd01_attr_groups[i].attr_group);
-+		sysfs_remove_group(&priv->fw_attr_kset->kobj,
-+				   cd01_attr_groups[i].attr_group);
- 
- 	kset_unregister(priv->fw_attr_kset);
- 	device_unregister(priv->fw_attr_dev);
-@@ -587,16 +571,16 @@ static void lwmi_om_fw_attr_remove(struct lwmi_om_priv *priv)
- static int lwmi_om_master_bind(struct device *dev)
- {
- 	struct lwmi_om_priv *priv = dev_get_drvdata(dev);
--	struct cd01_list *tmp_list;
-+	struct device *tmp_dev;
- 	int ret;
- 
--	ret = component_bind_all(dev, &tmp_list);
-+	ret = component_bind_all(dev, &tmp_dev);
- 	if (ret)
- 		return ret;
- 
--	priv->cd01_list = tmp_list;
-+	priv->cd01_dev = tmp_dev;
- 
--	if (!priv->cd01_list)
-+	if (!priv->cd01_dev)
- 		return -ENODEV;
- 
- 	return lwmi_om_fw_attr_add(priv);
--- 
-2.49.0
+2.39.1
 
