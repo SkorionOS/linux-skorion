@@ -2,7 +2,7 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchos
-pkgver=6.14.4.skb
+pkgver=6.14.4
 _pkgver=6.14.4-102
 pkgrel=2
 pkgdesc='Linux SkChimeraOS'
@@ -47,7 +47,7 @@ source=(
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
-  A008-Add-EXTRAVERSION.patch
+  # A008-Add-EXTRAVERSION.patch
 )
 
 validpgpkeys=(
@@ -66,8 +66,7 @@ sha256sums=('ca406ae1d4628053ebbd94eb56e65603bc2facf333f65e265cc72c524da3d8be'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
             'b8a82f7f4ad6c178b57326485e093fa9bf459ceeb7b4f30885e502002e626a72'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
-            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
-            'SKIP')
+            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
