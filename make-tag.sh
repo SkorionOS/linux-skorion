@@ -8,7 +8,13 @@ else
   exit 1
 fi
 
-tagname="v${pkgver%.*}-${pkgver##*.}-${pkgrel}"
+last_part="${pkgver##*.}"
+if [[ "$last_part" =~ ^[0-9]+$ ]]; then
+  tagname="v${pkgver}-${pkgrel}"
+else
+  tagname="v${pkgver%.*}-${pkgver##*.}-${pkgrel}"
+fi
+echo "tagname: $tagname"
 if out=$(git status --porcelain) && [ -z "$out" ]; then
   echo "Making git tag for $tagname"
   git tag "${tagname}" && git log -1
