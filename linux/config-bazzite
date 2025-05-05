@@ -151,3 +151,16 @@ CONFIG_ASUS_ARMOURY=m
 
 # From Valve: Disable simple-framebuffer to fix logo regression
 # CONFIG_SYSFB_SIMPLEFB is not set
+
+# ntsync backport
+CONFIG_NTSYNC=m
+
+# add OxpSensors new place
+CONFIG_OXP_EC=m
+# CONFIG_SENSORS_OXP is not set
+
+# Add AMDXDNA options
+CONFIG_DRM_ACCEL_AMDXDNA=m
+
+# Used for MControlCenter if msi-ec support is missing
+CONFIG_ACPI_EC_DEBUGFS=m
