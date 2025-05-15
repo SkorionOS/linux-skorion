@@ -4,7 +4,7 @@
 pkgbase=linux-skchos
 pkgver=6.14.6
 _pkgver=6.14.6-102
-pkgrel=2
+pkgrel=3
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -43,7 +43,9 @@ source=(
   "0001-cjktty-6.9.patch"
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
-  0005-lenovo-wmi.patch
+  0004-lenovo-wmi-hotkey-v11.patch
+  0005-lenovo-wmi-v9.patch
+  0006-s5-power.patch
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
@@ -64,7 +66,9 @@ sha256sums=('a8a494cbbf6d3164340196a9f6797b276d3baba118ec0bf53d91ad112e9f046f'
             '615f3d40eee647a343b968b43518f0c1c4cb83fa0d3c65f0397f5d7df5ae9359'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
-            'e0f8645cd07f876e700516aac9d93d377db65abfae5729722f6aa040a1bafd75'
+            '8ea1d4824597a5447eb914017c97c37f9ad5af47a56da76c217c8ad66b6ac6b8'
+            'cce4e1c5eda708b8aefbf486bc52d1200f97d337c03cf6bb383439f96777a90d'
+            'c4f2242cc1f31a853233ebe24d12d11a45ce0a6a6f69a2be524797904c11f7de'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206')
 
