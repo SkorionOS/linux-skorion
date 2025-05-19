@@ -4,7 +4,7 @@
 pkgbase=linux-skchos
 pkgver=6.14.6
 _pkgver=6.14.6-102
-pkgrel=3
+pkgrel=4
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -46,6 +46,7 @@ source=(
   0004-lenovo-wmi-hotkey-v11.patch
   0005-lenovo-wmi-v9.patch
   0006-s5-power.patch
+  0007-asus-ally-hid.patch
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
@@ -63,12 +64,13 @@ sha256sums=('a8a494cbbf6d3164340196a9f6797b276d3baba118ec0bf53d91ad112e9f046f'
             '15df67e5d931b0b2b26dafa40f6ecfb64d8e3bf0fb15840bf3fe225c7285ad77'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '5ea44e439dc799101a560316dc2a47c648d28db4d43b79a280dc4d56612668ac'
-            '615f3d40eee647a343b968b43518f0c1c4cb83fa0d3c65f0397f5d7df5ae9359'
+            '3237fa3bb5e3a215406883b1beebb4acfd171cb763fadeed3389a1e58bfc4884'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
             '8ea1d4824597a5447eb914017c97c37f9ad5af47a56da76c217c8ad66b6ac6b8'
             'cce4e1c5eda708b8aefbf486bc52d1200f97d337c03cf6bb383439f96777a90d'
             'c4f2242cc1f31a853233ebe24d12d11a45ce0a6a6f69a2be524797904c11f7de'
+            'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206')
 
