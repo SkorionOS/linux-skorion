@@ -4,7 +4,7 @@
 pkgbase=linux-skchos
 pkgver=6.14.6
 _pkgver=6.14.6-105
-pkgrel=5
+pkgrel=6
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
