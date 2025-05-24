@@ -4,7 +4,7 @@
 pkgbase=linux-skchos
 pkgver=6.14.6
 _pkgver=6.14.6-105
-pkgrel=6
+pkgrel=7
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -47,6 +47,7 @@ source=(
   0005-lenovo-wmi-v9.patch
   0006-s5-power.patch
   0007-asus-ally-hid.patch
+  0008-oxpec-Add-support-for-AOKZOE-A1X.patch
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
@@ -71,6 +72,7 @@ sha256sums=('b6fb3449c5dbcf78f1492503289b9faab78e57042bcb19b53aaff5ee64a8aaae'
             'cce4e1c5eda708b8aefbf486bc52d1200f97d337c03cf6bb383439f96777a90d'
             'c4f2242cc1f31a853233ebe24d12d11a45ce0a6a6f69a2be524797904c11f7de'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
+            '1b0cd2aebdda1f388f2f71611b6d8d1a589fce167cf43a4e07c742a302abd22a'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206')
 

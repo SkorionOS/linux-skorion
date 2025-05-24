@@ -1,0 +1,30 @@
+From 2ed3c589fe3048844197bcadb1d0e89e6ff44488 Mon Sep 17 00:00:00 2001
+From: honjow <honjow311@gmail.com>
+Date: Sat, 24 May 2025 21:58:29 +0800
+Subject: [PATCH] platform/x86: oxpec: Add support for AOKZOE A1X
+
+---
+ drivers/platform/x86/oxpec.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
+index 93e923b24feb..c80941cd4fda 100644
+--- a/drivers/platform/x86/oxpec.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -123,6 +123,13 @@ static const struct dmi_system_id dmi_table[] = {
+ 		},
+ 		.driver_data = (void *)aok_zoe_a1,
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AOKZOE"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AOKZOE A1X"),
++		},
++		.driver_data = (void *)aok_zoe_a1,
++	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-- 
+2.49.0
+
