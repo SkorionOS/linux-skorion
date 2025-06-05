@@ -92,12 +92,12 @@ prepare() {
   # mv $dir $_srcname
   cd $_srcname
 
-  mkdir -p submodules
-  git -c advice.detachedHead=false clone -b hwmon https://github.com/honjow/msi-ec.git submodules/msi-ec
-  cp -f submodules/msi-ec/ec_memory_configuration.h  drivers/platform/x86/msi-ec.h
-  cp -f submodules/msi-ec/msi-ec.c  drivers/platform/x86/msi-ec.c
-  sed -i 's/#include "ec_memory_configuration.h"/#include "msi-ec.h"/' drivers/platform/x86/msi-ec.c
-  sed -i 's/MODULE_VERSION("0.09");/MODULE_VERSION("0.10");/' drivers/platform/x86/msi-ec.c
+  # mkdir -p submodules
+  # git -c advice.detachedHead=false clone -b hwmon https://github.com/honjow/msi-ec.git submodules/msi-ec
+  # cp -f submodules/msi-ec/ec_memory_configuration.h  drivers/platform/x86/msi-ec.h
+  # cp -f submodules/msi-ec/msi-ec.c  drivers/platform/x86/msi-ec.c
+  # sed -i 's/#include "ec_memory_configuration.h"/#include "msi-ec.h"/' drivers/platform/x86/msi-ec.c
+  # sed -i 's/MODULE_VERSION("0.09");/MODULE_VERSION("0.10");/' drivers/platform/x86/msi-ec.c
 
   local src
   for src in "${source[@]}"; do
