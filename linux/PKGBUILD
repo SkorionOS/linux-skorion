@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchos
-pkgver=6.15.2
-_pkgver=6.15.2-1102
-pkgrel=2
+pkgver=6.15.3
+_pkgver=6.15.3-100
+pkgrel=1
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -31,10 +31,10 @@ makedepends=(
 options=('!strip')
 # _srcname=linux-chimeraos
 # _srcname=linux-$_pkgver
-_srcname=linux-$_pkgver
+_srcname=patchwork-$_pkgver
 source=(
-  # "https://github.com/hhd-dev/patchwork/archive/refs/tags/$_pkgver.tar.gz"
-  "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
+  "https://github.com/hhd-dev/patchwork/archive/refs/tags/$_pkgver.tar.gz"
+  # "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
   config  # the main kernel config file
   config-chimera # our config that will be merged
   config-bazzite
@@ -45,8 +45,8 @@ source=(
   "0002-cjktty-32.patch::https://github.com/zhmars/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
   # 0004-lenovo-wmi-hotkey-v11.patch
-  0005-lenovo-wmi-v9.patch
-  0006-s5-power.patch
+  0005-lenovo-wmi-v12.patch
+  0006-s5-power-v4.patch
   0007-asus-ally-hid.patch
   0008-oxpec-Add-support-for-AOKZOE-A1X.patch
 
@@ -62,15 +62,15 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('e08674543a0c8a697b1dbd5ceb50775b3b52a2d745733771716d69d13581bd0d'
-            'b91f05f010dbf6786026278c2e095201c9b043c91d9a2065fc4de2d28d0dcb37'
+sha256sums=('83ea997365e41243f7e918464093898748c4e9c2089ebd70f0c54491c41ced0a'
+            'eed83e8a6c1524a7ad7e5d836cc6d7fa291b7c8e205dd7dd68dffaae22b77812'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '5ea44e439dc799101a560316dc2a47c648d28db4d43b79a280dc4d56612668ac'
             '3237fa3bb5e3a215406883b1beebb4acfd171cb763fadeed3389a1e58bfc4884'
             '4c3aa25cd507c637e11424944241c8b195129d82f6a188e94b1cc8b8821c2441'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
-            'cce4e1c5eda708b8aefbf486bc52d1200f97d337c03cf6bb383439f96777a90d'
-            'c4f2242cc1f31a853233ebe24d12d11a45ce0a6a6f69a2be524797904c11f7de'
+            '1ceb678e4d4cdc93f186bf77c028067016455fe6b91377b163f2aa24c8b98cdd'
+            'c1ab21e0166d37c333677198ba8e08bbe5db6c07446d2710f1d1131294c789f0'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
             '1b0cd2aebdda1f388f2f71611b6d8d1a589fce167cf43a4e07c742a302abd22a'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'

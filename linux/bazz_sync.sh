@@ -2,7 +2,7 @@
 
 set -e
 
-URL="https://github.com/hhd-dev/kernel-bazzite/blob/bazzite-6.14/kernel-local?raw=true"
+URL="https://github.com/hhd-dev/kernel-bazzite/blob/bazzite-6.15/kernel-local?raw=true"
 
 NAME="config-bazzite"
 
