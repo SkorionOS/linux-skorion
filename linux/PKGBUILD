@@ -3,8 +3,8 @@
 
 pkgbase=linux-skchos
 pkgver=6.15.4
-_pkgver=6.15.4-101
-pkgrel=1
+_pkgver=6.15.4-101-fix
+pkgrel=2
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -30,11 +30,11 @@ makedepends=(
 )
 options=('!strip')
 # _srcname=linux-chimeraos
-# _srcname=linux-$_pkgver
-_srcname=patchwork-$_pkgver
+_srcname=linux-$_pkgver
+# _srcname=patchwork-$_pkgver
 source=(
-  "https://github.com/hhd-dev/patchwork/archive/refs/tags/$_pkgver.tar.gz"
-  # "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
+  # "https://github.com/hhd-dev/patchwork/archive/refs/tags/$_pkgver.tar.gz"
+  "https://github.com/3003n/linux/archive/refs/tags/$_pkgver.tar.gz"
   config  # the main kernel config file
   config-chimera # our config that will be merged
   config-bazzite
@@ -62,7 +62,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('e32f66f383c9670d44bdc864816c16293b2969ee717435a42abd5c54c148c088'
+sha256sums=('323e8b528177a759f34784b806db5f8ec8fe6c88f210e53184dd334f39a180cb'
             '18cd956a7f05ad7689517dc070e851a6cf4837543a56821ab48dd0b60e92e835'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '5ea44e439dc799101a560316dc2a47c648d28db4d43b79a280dc4d56612668ac'
