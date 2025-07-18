@@ -4,7 +4,7 @@
 pkgbase=linux-skchos
 pkgver=6.15.6
 _pkgver=6.15.6-111
-pkgrel=12
+pkgrel=13
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -54,6 +54,7 @@ source=(
   0033-bmi260-6.13.patch
   0034-platform-x86-msi-wmi-platform-update-tdp-range.patch
   0035-platform-x86-msi-wmi-platform-fix-wrong-attribute-ID.patch
+  0036-platform-x86-msi-wmi-platform-update-attribute-name-.patch
   # A008-Add-EXTRAVERSION.patch
 )
 
@@ -78,7 +79,8 @@ sha256sums=('56f167cf8af1685ce07c10a899a25f6bd1c30a0a2049726983597c62cee99d6a'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
             '211f2975d3249c7d64372e0fbeae0ab194385f5f68786f1166f046c96f44188c'
-            '272d606f7d7fa3406f16f3ed6dac301983171125f399847ac51650c8bc7213e7')
+            '272d606f7d7fa3406f16f3ed6dac301983171125f399847ac51650c8bc7213e7'
+            'd95bd30d8646a45691fd3e81b7faa4fdc265cd2dd550cf238230c8c6ed07c0fd')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
