@@ -1,0 +1,26 @@
+From 06daf8d6ccc503362794f8ed98241af6a124b39c Mon Sep 17 00:00:00 2001
+From: honjow <honjow311@gmail.com>
+Date: Sat, 19 Jul 2025 07:31:35 +0800
+Subject: [PATCH 2/2] platform/x86: msi-wmi-platform: fix wrong attribute ID
+ for FPPT initialization
+
+---
+ drivers/platform/x86/msi-wmi-platform.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index 26678525a7a0..82b75321118b 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -1172,7 +1172,7 @@ static int msi_wmi_fw_attrs_init(struct msi_wmi_platform_data *data)
+ 	}
+ 
+ 	if (data->quirks->ppt_fppt) {
+-		err = msi_fw_attr_init(data, MSI_ATTR_PPT_PL2_SPPT,
++		err = msi_fw_attr_init(data, MSI_ATTR_PPT_FPPT,
+ 				       &fw_attr_type_int, data->quirks->ppt_min,
+ 				       data->quirks->ppt_fppt,
+ 				       &data_get_value, &data_set_value);
+-- 
+2.50.1
+
