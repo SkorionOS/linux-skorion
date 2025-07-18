@@ -1,0 +1,45 @@
+From 33487a7333bf9018078e70dffd7fd4c980de3cb4 Mon Sep 17 00:00:00 2001
+From: honjow <honjow311@gmail.com>
+Date: Sat, 19 Jul 2025 01:26:48 +0800
+Subject: [PATCH] platform/x86: msi-wmi-platform: update tdp range
+
+---
+ drivers/platform/x86/msi-wmi-platform.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index f402790e9368..26678525a7a0 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -234,7 +234,7 @@ static struct msi_wmi_platform_quirk quirk_gen1 = {
+ 	.charge_threshold = true,
+ 	.dual_fans = true,
+ 	.restore_curves = true,
+-	.ppt_min = 8,
++	.ppt_min = 5,
+ 	.ppt_pl1_spl_max = 43,
+ 	.ppt_pl2_sppt_max = 45
+ };
+@@ -243,8 +243,8 @@ static struct msi_wmi_platform_quirk quirk_gen2 = {
+ 	.charge_threshold = true,
+ 	.dual_fans = true,
+ 	.restore_curves = true,
+-	.ppt_min = 8,
+-	.ppt_pl1_spl_max = 30,
++	.ppt_min = 5,
++	.ppt_pl1_spl_max = 37,
+ 	.ppt_pl2_sppt_max = 37,
+ };
+ static struct msi_wmi_platform_quirk quirk_amd = {
+@@ -253,7 +253,7 @@ static struct msi_wmi_platform_quirk quirk_amd = {
+ 	.dual_fans = true,
+ 	.restore_curves = true,
+ 	.ppt_min = 4,
+-	.ppt_pl1_spl_max = 28,
++	.ppt_pl1_spl_max = 35,
+ 	.ppt_pl2_sppt_max = 45,
+ 	.ppt_fppt = 55
+ };
+-- 
+2.50.1
+

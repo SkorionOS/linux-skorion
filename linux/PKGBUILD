@@ -3,8 +3,8 @@
 
 pkgbase=linux-skchos
 pkgver=6.15.6
-_pkgver=6.15.6-109
-pkgrel=9
+_pkgver=6.15.6-111
+pkgrel=11
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -52,6 +52,7 @@ source=(
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
+  0034-platform-x86-msi-wmi-platform-update-tdp-range.patch
   # A008-Add-EXTRAVERSION.patch
 )
 
@@ -62,7 +63,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('SKIP'
+sha256sums=('56f167cf8af1685ce07c10a899a25f6bd1c30a0a2049726983597c62cee99d6a'
             '95a2848c23e99e7987ef73afc9fcd038f2460168fd1c56b1cb59faebe4fb599d'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '5ea44e439dc799101a560316dc2a47c648d28db4d43b79a280dc4d56612668ac'
@@ -74,7 +75,8 @@ sha256sums=('SKIP'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
             '1b0cd2aebdda1f388f2f71611b6d8d1a589fce167cf43a4e07c742a302abd22a'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
-            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206')
+            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
+            '211f2975d3249c7d64372e0fbeae0ab194385f5f68786f1166f046c96f44188c')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
