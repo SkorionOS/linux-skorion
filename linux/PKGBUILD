@@ -3,8 +3,8 @@
 
 pkgbase=linux-skchos
 pkgver=6.15.6
-_pkgver=6.15.6-112
-pkgrel=14
+_pkgver=6.15.6-113
+pkgrel=15
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -48,7 +48,7 @@ source=(
   0005-lenovo-wmi-v12.patch
   0006-s5-power-v4.patch
   0007-asus-ally-hid.patch
-  0008-oxpec-Add-support-for-AOKZOE-A1X.patch
+  # 0008-oxpec-Add-support-for-AOKZOE-A1X.patch
 
   0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
   0033-bmi260-6.13.patch
@@ -63,7 +63,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('3d674b9f2c5c5cc65072785fdfd805d38b30d405cc1db0fdaa7baa506e9caee7'
+sha256sums=('c7a4cf296108873a4a5056f23eca1bd0a391307ef867a0195b33fc030929d985'
             '95a2848c23e99e7987ef73afc9fcd038f2460168fd1c56b1cb59faebe4fb599d'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '5ea44e439dc799101a560316dc2a47c648d28db4d43b79a280dc4d56612668ac'
@@ -73,10 +73,9 @@ sha256sums=('3d674b9f2c5c5cc65072785fdfd805d38b30d405cc1db0fdaa7baa506e9caee7'
             '1ceb678e4d4cdc93f186bf77c028067016455fe6b91377b163f2aa24c8b98cdd'
             'c1ab21e0166d37c333677198ba8e08bbe5db6c07446d2710f1d1131294c789f0'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
-            '1b0cd2aebdda1f388f2f71611b6d8d1a589fce167cf43a4e07c742a302abd22a'
             '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
             '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
-            '294e261653aecfd782a219800beacfc44cc2d1cde5795f3531c785cf3622da47')
+            'f21993ad7e78e7e89f00e37c9d17ed7976f733684be97ea5ec7ccb5eec563b6b')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
