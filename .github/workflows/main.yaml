@@ -11,7 +11,8 @@ env:
 
 jobs:
   build-kernel:
-    runs-on: self-hosted
+    # runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     outputs:
       full_version: ${{ steps.build-kernel-package.outputs.full_version }}
