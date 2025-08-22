@@ -2,7 +2,8 @@ name: Build ChimeraOS Linux Kernel
 
 on:
   push:
-    tags: '*'
+    tags:
+      - '*'
   workflow_dispatch:
 
 env:
@@ -11,8 +12,8 @@ env:
 
 jobs:
   build-kernel:
-    # runs-on: self-hosted
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    # runs-on: ubuntu-latest
 
     outputs:
       full_version: ${{ steps.build-kernel-package.outputs.full_version }}
