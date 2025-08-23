@@ -3,8 +3,8 @@
 
 pkgbase=linux-skchos
 pkgver=6.15.9
-_pkgver=6.15.9-110
-pkgrel=4
+_pkgver=6.15.9-111
+pkgrel=5
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -63,7 +63,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('08fe5529f94e328554e3532db44909a0f94e6e9ab4de5f0d1a10e6e7629ff926'
+sha256sums=('4c56a655784b4a1edbf333b9cc9782e942998f68ada707958fbd871cd261c63b'
             '975ff5fe653dff62912560f7a32af82bcf95ec08f420749c56aa049f46cb661b'
             '040ce4458098923ee9b185d81dea59fdeca990c5cd2d6e2a82a5873a8abeecca'
             '3ffad30733d679fef178fcf6e2aede4ac006fac07e796e4944c5007c30f02368'
