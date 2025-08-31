@@ -3,8 +3,8 @@
 
 pkgbase=linux-skchos
 pkgver=6.16.4
-_pkgver=6.16.4-101
-pkgrel=101
+_pkgver=6.16.4-103
+pkgrel=103
 pkgdesc='Linux SkChimeraOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -40,6 +40,9 @@ source=(
   config-bazzite
   config-sk
 
+  # R0001-Revert-drm-amd-display-enable-tf_blend-if-supported-.patch
+  # R0002-Revert-drm-re-allow-no-op-changes-on-non-primary-pla.patch
+
   "0001-cjktty-6.16.patch::https://github.com/bigshans/cjktty-patches/raw/master/v6.x/cjktty-6.16.patch"
   "0002-cjktty-32.patch::https://github.com/bigshans/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
@@ -62,7 +65,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('5862dee5f9e196bcb50a37f547836e4fd9a460233d3c6589b87663d1b3ad7d58'
+sha256sums=('eb7373d1d7f3ecaede8372303a7370d8d01d02f6d548111fc1724dd5abd7538e'
             '33e7e35af5a1a9d937aa54865c79cd2fc0f2834e9db9f7ba171e3bb93f19e552'
             '50b2a3f98df27321b26f57fa3ea2053c2378e4109881d20ee2aeac45b6574b69'
             '30d0b395d262c02058a54d72f5af5c8febfac74408a661766e61e8adba87b933'
