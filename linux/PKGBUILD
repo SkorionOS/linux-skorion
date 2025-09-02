@@ -3,9 +3,9 @@
 
 pkgbase=linux-skchos
 pkgver=6.16.4
-_pkgver=6.16.4-103
-pkgrel=103
-pkgdesc='Linux SkChimeraOS'
+_pkgver=6.16.4-104
+pkgrel=104
+pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
 url="https://github.com/3003n/linux/commits/$_srctag"
@@ -65,7 +65,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('eb7373d1d7f3ecaede8372303a7370d8d01d02f6d548111fc1724dd5abd7538e'
+sha256sums=('b9901190752dfc5f6ac518215f50aa42f43bf1eca2e4072c260e5f61107433da'
             '33e7e35af5a1a9d937aa54865c79cd2fc0f2834e9db9f7ba171e3bb93f19e552'
             '50b2a3f98df27321b26f57fa3ea2053c2378e4109881d20ee2aeac45b6574b69'
             '30d0b395d262c02058a54d72f5af5c8febfac74408a661766e61e8adba87b933'
