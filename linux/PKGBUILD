@@ -52,8 +52,8 @@ source=(
   0007-asus-ally-hid.patch
   # 0008-oxpec-Add-support-for-AOKZOE-A1X.patch
 
-  0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
-  0033-bmi260-6.13.patch
+  # 0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
+  # 0033-bmi260-6.13.patch
   0034-platform-x86-msi-wmi-platform-update-tdp-range.patch
   # A008-Add-EXTRAVERSION.patch
 )
@@ -74,8 +74,6 @@ sha256sums=('efe4973f5ec8691c96c483c2a509d4e0bd94bef88c5e56ad9e3b443682c66dd8'
             '1ceb678e4d4cdc93f186bf77c028067016455fe6b91377b163f2aa24c8b98cdd'
             'c1ab21e0166d37c333677198ba8e08bbe5db6c07446d2710f1d1131294c789f0'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
-            '889344264898db71763a5104e36dc6b12c19e24ac85cff0935f923b8b0f63657'
-            '57df094896a11feb438b3291b8ca10ba2fd95dd724eebfe06dac97a28559e206'
             'f21993ad7e78e7e89f00e37c9d17ed7976f733684be97ea5ec7ccb5eec563b6b')
 
 export KBUILD_BUILD_HOST=archlinux
