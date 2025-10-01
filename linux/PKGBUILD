@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchos
-pkgver=6.16.4
-_pkgver=6.16.4-114
-pkgrel=114
+pkgver=6.17.0
+_pkgver=6.17.0-1.bazzite
+pkgrel=4
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -47,7 +47,7 @@ source=(
   "0002-cjktty-32.patch::https://github.com/bigshans/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
   # 0004-lenovo-wmi-hotkey-v11.patch
-  0005-lenovo-wmi-v12.patch
+  # 0005-lenovo-wmi-v12.patch
   0006-s5-power-v4.patch
   0007-asus-ally-hid.patch
   # 0008-oxpec-Add-support-for-AOKZOE-A1X.patch
@@ -65,13 +65,12 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('d14f8a7cfb7fd75aa86745571a6f61a9a7fe1e2cecbe37f3bb1c152771414401'
-            '33e7e35af5a1a9d937aa54865c79cd2fc0f2834e9db9f7ba171e3bb93f19e552'
-            '50b2a3f98df27321b26f57fa3ea2053c2378e4109881d20ee2aeac45b6574b69'
-            '30d0b395d262c02058a54d72f5af5c8febfac74408a661766e61e8adba87b933'
+sha256sums=('c9f60cbc3f8d38e44ad48ed17701812bf87cc78f9c6e27e6ab0186a7356502f4'
+            'bdee402e636e727cb5687eefcea3b2ff23aa685ea63e2a1fd8907ce7c6068421'
+            '778ee67a2d944d37dfd03d98f178086d2c1bf909c419085521450a4992d8cf53'
+            '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
-            '1ceb678e4d4cdc93f186bf77c028067016455fe6b91377b163f2aa24c8b98cdd'
             'c1ab21e0166d37c333677198ba8e08bbe5db6c07446d2710f1d1131294c789f0'
             'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
             'f21993ad7e78e7e89f00e37c9d17ed7976f733684be97ea5ec7ccb5eec563b6b')
