@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchos
-pkgver=6.17.0
-_pkgver=6.17.0-ba07
-pkgrel=7
+pkgver=6.17.1
+_pkgver=6.17.1-ba04
+pkgrel=4
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -65,8 +65,8 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('0945070df9e9b89e02c847d928269d833115e7451f9ffa8e964f787b25d3bf52'
-            'bdee402e636e727cb5687eefcea3b2ff23aa685ea63e2a1fd8907ce7c6068421'
+sha256sums=('9ce78f6f74366cff358f62d9b297b2eaa9d75ed94ff9f0860bf78c3de207308f'
+            '91a5778282461e77d8d758c50757be8ed86bd5135b016b3400ad82a55248bcf7'
             '778ee67a2d944d37dfd03d98f178086d2c1bf909c419085521450a4992d8cf53'
             '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
