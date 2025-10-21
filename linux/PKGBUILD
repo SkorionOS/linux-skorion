@@ -2,9 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 
 pkgbase=linux-skchos
-pkgver=6.17.1
-_pkgver=6.17.1-ba04
-pkgrel=7
+pkgver=6.17.4
+_pkgver=6.17.4-ba05
+pkgrel=1
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -46,14 +46,9 @@ source=(
   "0001-cjktty-6.16.patch::https://github.com/bigshans/cjktty-patches/raw/master/v6.x/cjktty-6.16.patch"
   "0002-cjktty-32.patch::https://github.com/bigshans/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
-  # 0004-lenovo-wmi-hotkey-v11.patch
-  # 0005-lenovo-wmi-v12.patch
-  0006-s5-power-v4.patch
-  0007-asus-ally-hid.patch
-  # 0008-oxpec-Add-support-for-AOKZOE-A1X.patch
+  # 0006-s5-power-v4.patch
+  # 0007-asus-ally-hid.patch
 
-  # 0032-iio-imu-Add-driver-for-Bosch-BMI260-IMU.patch
-  # 0033-bmi260-6.13.patch
   0034-platform-x86-msi-wmi-platform-update-tdp-range.patch
   # A008-Add-EXTRAVERSION.patch
 )
@@ -65,14 +60,12 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('9ce78f6f74366cff358f62d9b297b2eaa9d75ed94ff9f0860bf78c3de207308f'
+sha256sums=('e2ab6cc1ce1585ee5fb17abce31e76829a979d750d4bcec0ad15099ebca615d9'
             '67b9cdf43eb516db913fb69a48410810aa462f886cc5f5b8c36266193a9fb6d7'
             '778ee67a2d944d37dfd03d98f178086d2c1bf909c419085521450a4992d8cf53'
             '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
-            'c1ab21e0166d37c333677198ba8e08bbe5db6c07446d2710f1d1131294c789f0'
-            'f779c2b262fd6ac009b4c2e555b493541d91743283639c771797969e1421fd71'
             'f21993ad7e78e7e89f00e37c9d17ed7976f733684be97ea5ec7ccb5eec563b6b')
 
 export KBUILD_BUILD_HOST=archlinux
