@@ -2,7 +2,8 @@
 
 set -e
 
-URL="https://github.com/hhd-dev/kernel-bazzite/blob/bazzite-6.17/kernel-local?raw=true"
+# URL="https://github.com/hhd-dev/kernel-bazzite/blob/bazzite-6.17/kernel-local?raw=true"
+URL="https://github.com/bazzite-org/patchwork/raw/bazzite-6.17/redhat/configs/custom-overrides/generic/x86/CONFIG_LOCAL"
 
 NAME="config-bazzite"
 
