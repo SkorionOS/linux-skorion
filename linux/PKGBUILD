@@ -14,8 +14,11 @@ license=(GPL2)
 makedepends=(
   bc  
   cpio
+  curl
   gettext
+  git
   libelf
+  make
   pahole
   perl
   python
@@ -60,9 +63,9 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('69cf377af65477ebf57bc3ea2155460bf2515513de01d7a85ebf7fe3068b156a'
+sha256sums=('f9e5e8c3cd84a47fb12b762d866bc9218f56f83f53fb378354ca6d01ef796615'
             '0fa552e7e7f8fd71ba7ca99d7a73be0b515e7890bf8593dcb72ca3b2a861def2'
-            '778ee67a2d944d37dfd03d98f178086d2c1bf909c419085521450a4992d8cf53'
+            '4e0bc06b0cd7a5bc4ae687b12343bbc28bdbf2465e68e9a021b9370b5743f5ff'
             '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
@@ -104,10 +107,59 @@ prepare() {
     patch -Np1 < "../$src"
   done
 
-  # clean drivers/custom
+  # Fetch custom drivers automatically
+  echo "Fetching custom driver submodules..."
+  local tmpdir=$(mktemp -d)
+  
+  # Shallow clone to get submodule info
+  git clone --depth=1 --branch $_pkgver --filter=blob:none \
+    https://github.com/hhd-dev/patchwork.git "$tmpdir/patchwork" || {
+    echo "Warning: failed to clone patchwork, cleaning drivers/custom"
+    find drivers/custom -type d -empty -delete
+    echo "" > drivers/custom/Makefile
+    echo "" > drivers/custom/Kconfig
+    rm -rf "$tmpdir"
+    return
+  }
+  
+  cd "$tmpdir/patchwork"
+  
+  # Get submodule info and download each one
+  git submodule init drivers/custom
+  git submodule status drivers/custom/* 2>/dev/null | while read -r status_line; do
+    commit=$(echo "$status_line" | awk '{print $1}' | sed 's/^[-+]//')
+    path=$(echo "$status_line" | awk '{print $2}')
+    name=$(basename "$path")
+    url=$(git config --file .gitmodules --get "submodule.$path.url")
+    
+    if [ -n "$commit" ] && [ -n "$url" ]; then
+      echo "  -> Downloading $name at ${commit:0:8}..."
+      mkdir -p "$srcdir/$_srcname/$path"
+      
+      # Try archive download first
+      if ! curl -sfL "$url/archive/$commit.tar.gz" | \
+        tar -xz -C "$srcdir/$_srcname/$path" --strip-components=1 2>/dev/null; then
+        
+        # Fallback to shallow git clone
+        echo "     -> Using git clone fallback..."
+        local clone_tmp="$tmpdir/${name}_clone"
+        if git clone --depth=50 "$url" "$clone_tmp" 2>/dev/null; then
+          (cd "$clone_tmp" && git checkout $commit 2>/dev/null && rm -rf .git) && \
+            cp -r "$clone_tmp"/* "$srcdir/$_srcname/$path/" 2>/dev/null || \
+            echo "     Warning: failed to checkout $name"
+          rm -rf "$clone_tmp"
+        else
+          echo "     Warning: failed to download $name"
+        fi
+      fi
+    fi
+  done
+  
+  cd "$srcdir/$_srcname"
+  rm -rf "$tmpdir"
+  
+  # Clean up any empty directories
   find drivers/custom -type d -empty -delete
-  echo "" > drivers/custom/Makefile
-  echo "" > drivers/custom/Kconfig
 
   echo "Setting version..."
   echo "${pkgbase#linux}" > localversion.10-pkgname
