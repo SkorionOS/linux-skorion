@@ -220,6 +220,10 @@ _package() {
   ZSTD_CLEVEL=19 _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
     DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
+  # Install custom drivers configuration files
+  echo "Installing custom drivers configuration files..."
+  _make -C drivers/custom INSTALL_DIR="$pkgdir" install || echo "Warning: custom drivers install failed"
+
   # remove build links
   rm "$modulesdir"/build
 }
