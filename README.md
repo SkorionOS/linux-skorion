@@ -1,4 +1,4 @@
-# Linux kernel based on ArchLinux and patched for ChimeraOS
+# Linux kernel based on ArchLinux and patched for SkorionOS
 
 We aim to provide early access to some upstream patches and some compatibility
 fixes we discover and test. Yet we try to provide a stable experience.

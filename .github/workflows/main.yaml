@@ -1,4 +1,4 @@
-name: Build ChimeraOS Linux Kernel
+name: Build SkorionOS Linux Kernel
 
 on:
   push:
