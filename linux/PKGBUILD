@@ -32,7 +32,7 @@ makedepends=(
   #texlive-latexextra
 )
 options=('!strip')
-# _srcname=linux-chimeraos
+# _srcname=linux-skorionos
 # _srcname=linux-$_pkgver
 _srcname=patchwork-$_pkgver
 source=(
