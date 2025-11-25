@@ -50,6 +50,8 @@ source=(
   "0001-cjktty-6.16.patch::https://github.com/bigshans/cjktty-patches/raw/master/v6.x/cjktty-6.16.patch"
   "0002-cjktty-32.patch::https://github.com/bigshans/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
 
+  0003-Add-OneXPlayer-HID-RGB-driver.patch
+
   # 0006-s5-power-v4.patch
   # 0007-asus-ally-hid.patch
 
@@ -70,6 +72,7 @@ sha256sums=('8e76dd6a10015387d03d657986d095e810ce83501aab5102203137b33b593965'
             '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
+            '5aba133fb319d929630348e2ccebb92cfbce10f183926671dd03323e4e34e7a1'
             'f21993ad7e78e7e89f00e37c9d17ed7976f733684be97ea5ec7ccb5eec563b6b')
 
 export KBUILD_BUILD_HOST=archlinux
