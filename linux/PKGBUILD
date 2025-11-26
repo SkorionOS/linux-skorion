@@ -5,7 +5,7 @@
 pkgbase=linux-skchos
 pkgver=6.17.7
 _pkgver=6.17.7-ba18
-pkgrel=4
+pkgrel=5
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -69,7 +69,7 @@ validpgpkeys=(
 sha256sums=('SKIP'
             '0ffa75682353e604dd59e7bafc0d88c46caa221631f6b7783a78b0abe9077c16'
             '4e0bc06b0cd7a5bc4ae687b12343bbc28bdbf2465e68e9a021b9370b5743f5ff'
-            '859e09fd34b224cbb3675fc984cd4dc4f08ea74a3c48970fe7248358be553180'
+            '569302e9b2f87d6c996bc1e0c8c6a2934c3cb34762a033063c9fbc5535853b82'
             'a93750d533c660f7e6a8536998dc607884b6b69d934f125d6950a86c2a601d47'
             'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
             '5aba133fb319d929630348e2ccebb92cfbce10f183926671dd03323e4e34e7a1'
