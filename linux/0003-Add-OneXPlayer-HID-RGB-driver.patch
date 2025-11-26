@@ -296,7 +296,7 @@ index 000000000000..31b458c72e1c
 +static int x1mini_property_out(enum oxp_function_index fid, u8 *data,
 +			       u8 data_size)
 +{
-+	u8 header[] = { fid, X1MINI_MESSAGE_HEADER };
++	u8 header[] = { fid, X1MINI_MESSAGE_HEADER, 0x01 };
 +	u8 footer[] = { X1MINI_MESSAGE_HEADER, fid };
 +	size_t header_size = ARRAY_SIZE(header);
 +	size_t footer_size = ARRAY_SIZE(footer);
@@ -418,7 +418,7 @@ index 000000000000..31b458c72e1c
 +			break;
 +		case X1MINI_USAGE_PAGE:
 +			data = (u8[3]){ effect, 0x00, 0x02 };
-+			ret = x1mini_property_out(FID_X1MINI_RGB, data, 1);
++			ret = x1mini_property_out(FID_X1MINI_RGB, data, 3);
 +			break;
 +		default:
 +			ret = ENODEV;
