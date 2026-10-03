@@ -2,8 +2,8 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 # Modified by SkorionOS team
 
-# Validate the reviewed immutable source commit before publishing source/package
-# tags. The final release switches to the real source tag archive (ci/README.md).
+# Prepare/config CI validates this reviewed immutable source commit.
+# Use the real source tag archive before creating the packaging release tag.
 
 pkgbase=linux-skchos
 pkgver=7.2.8.sk1

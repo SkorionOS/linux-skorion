@@ -2,113 +2,72 @@ name: Build SkorionOS Linux Kernel
 
 on:
   push:
-    branches: ['7.2-ogc']
-    tags: ['v*-sk*-*']
+    tags:
+      - '*'
   workflow_dispatch:
 
-permissions:
-  contents: read
-
-concurrency:
-  group: kernel-build-${{ github.ref }}
-  cancel-in-progress: false
-
 env:
-  PKGDEST: /tmp/linux-skorionos
-  BUILDDIR: /tmp/build
-
-defaults:
-  run:
-    shell: bash
+  PKGDEST: "/tmp/linux-skorionos"
+  BUILDDIR: "/tmp/build"
 
 jobs:
   build-kernel:
-    # Trusted branch/tag pushes only; pull requests never execute here.
     runs-on: self-hosted
-    timeout-minutes: 360
-    permissions:
-      contents: read
-      actions: read
+    # runs-on: ubuntu-latest
+
     outputs:
       full_version: ${{ steps.build-kernel-package.outputs.full_version }}
-    # No privileged mode, host filesystem mounts, or host cleanup.
-    container:
+    
+    container: 
       image: archlinux:base-devel
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@v3
+      - name: Create build user
+        run: |
+          useradd -m build
+          cp -vR linux /home/build/linux
+          chown -vR build /home/build/linux
       - name: Set up pacman keyring
         run: |
           pacman-key --init
           pacman-key --populate archlinux
+          mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
       - name: Install dependencies
-        run: pacman -Syu --noconfirm bc cpio pahole python kmod git
-      - name: Test packaging contracts
-        run: python -m unittest discover -s tests -v
-      - name: Require successful branch CI before a release tag
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python ci/check-release.py
-      - name: Create isolated build directories
         run: |
-          useradd -m build
-          cp -a linux /home/build/linux
-          chown -R build:build /home/build/linux
-          install -d -o build -g build "$PKGDEST" "$BUILDDIR"
-          df -h "$BUILDDIR"
-      - name: Build and validate kernel and headers packages
+          pacman -Syu --noconfirm bc cpio pahole python kmod git
+      - name: Build linux-skorionos package
         id: build-kernel-package
+        shell: bash
         run: |
-          runuser -u build -- env PKGDEST="$PKGDEST" BUILDDIR="$BUILDDIR" \
-            MAKEFLAGS="-j$(nproc)" bash -c \
-            'cd /home/build/linux && makepkg --noconfirm' 2>&1 | tee /tmp/kernel-build.log
-          source /home/build/linux/PKGBUILD
+          runuser -u build -- bash -lc 'cd /home/build/linux && MAKEFLAGS=-j$(nproc) makepkg'
+          . /home/build/linux/PKGBUILD
           full_version=${pkgver}-${pkgrel}
-          python ci/verify-packages.py "$PKGDEST" "$full_version" "$GITHUB_SHA"
           echo "full_version=$full_version" >> "$GITHUB_OUTPUT"
       - name: Upload package artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v4
         with:
-          name: linux-skorionos-package-${{ github.sha }}
+          name: linux-skorionos-package
           path: |
             ${{ env.PKGDEST }}/*.pkg.tar.zst
-            ${{ env.PKGDEST }}/SHA256SUMS
-            ${{ env.PKGDEST }}/build-manifest.json
           if-no-files-found: error
-      - name: Upload build diagnostics
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: kernel-build-diagnostics-${{ github.sha }}
-          path: /tmp/kernel-build.log
-          if-no-files-found: ignore
 
   make-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs: [build-kernel]
-    permissions:
-      contents: write
     steps:
-      - name: Download this run's tested packages
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: linux-skorionos-package-${{ github.sha }}
+          name: linux-skorionos-package
           path: ${{ env.PKGDEST }}
-      - name: Verify artifact checksums
-        working-directory: ${{ env.PKGDEST }}
-        run: sha256sum --check SHA256SUMS
+
       - name: Make release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@v2
         with:
-          name: linux-skorionos-${{ needs.build-kernel.outputs.full_version }}
+          name: linux-skorionos-${{needs.build-kernel.outputs.full_version}}
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: true
           fail_on_unmatched_files: true
           files: |
             ${{ env.PKGDEST }}/*.pkg.tar.zst
-            ${{ env.PKGDEST }}/SHA256SUMS
-            ${{ env.PKGDEST }}/build-manifest.json

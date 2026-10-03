@@ -5,33 +5,27 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 env:
   BUILDDIR: "/tmp/build"
 
 jobs:
   test-integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     container: archlinux:base-devel
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@v3
       - name: Create build user
         run: |
           useradd -m build
           cp -vR linux /home/build/linux
           chown -vR build /home/build/linux
-          install -d -o build -g build "$BUILDDIR"
       - name: Set up pacman keyring
         run: |
           pacman-key --init
           pacman-key --populate archlinux
+          mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm bc cpio pahole python kmod git

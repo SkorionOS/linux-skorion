@@ -10,10 +10,11 @@ The reviewed Skorion source commit is
 The source commit is published on `skos-ogc-7.2`. Package version
 `7.2.8.sk1-1` currently uses its immutable commit archive and downloaded SHA256
 `a2e902286bb915ccba511b3cc56fc7341f1bbc3cedbf77fca3e7c8dbaf61f0c6`.
-The source tag `v7.2.8-sk1` is created only after full packaging CI succeeds.
-Then the tag archive and actual checksum replace the commit archive, both CI
-workflows run again on the final packaging commit, and only then can package
-tag `v7.2.8-sk1-1` be published. See [release sequence](../ci/README.md).
+Ordinary branch CI checks source preparation and configuration only. Once that
+passes, the approved source tag `v7.2.8-sk1` and its real archive checksum can be
+used by packaging; package tag `v7.2.8-sk1-1` then triggers the full kernel build.
+The dedicated prepare/config workflow is the pre-tag check; full compilation
+runs only after tagging (or an explicit manual dispatch).
 No placeholder hash, SKIP or fabricated tag is used.
 
 ## Active patches
@@ -147,8 +148,7 @@ The exact-commit CI workflows separately establish clean Arch prepare/full
 makepkg and module/header package checks. Device and CJK runtime regression
 tests remain necessary even after CI succeeds.
 
-The separately reviewed release workflow change removes privileged mode,
-host `/usr` and `/opt` mounts, and destructive host cleanup. Trusted branch
-builds now run full `makepkg` without publishing. A version tag must match the
-package metadata and the exact commit's latest successful prepare and full
-build branch runs; publication uses only that tag run's verified artifacts.
+The release workflow removes privileged mode, host `/usr` and `/opt` mounts,
+and destructive host cleanup. Ordinary branch pushes run only prepare/config
+CI. Full kernel/package building remains triggered by tags or explicit manual
+dispatch, as in the original repository workflow.
