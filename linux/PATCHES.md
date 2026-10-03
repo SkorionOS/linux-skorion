@@ -3,18 +3,18 @@
 Reviewed 2026-10-03. Upstream is the actual stable release
 [v7.2.8-ogc1](https://github.com/OpenGamingCollective/linux/releases/tag/v7.2.8-ogc1),
 commit `f90d862923d8254f6df4b7ea81df68eef6d3a45e`.
-The locally integrated Skorion source candidate is
+The reviewed Skorion source commit is
 `5fbd1d76fdd52d2f8da49fa7a56ea8bc344d9c96`, tree
 `fbd72baa407fbe4419752b940d6027e85309aebc`.
 
-This is preparation, not a release: PKGBUILD's version, source tag and first
-archive checksum still describe the last published `v7.2.1-sk2` source.
-Do not push a build tag or dispatch the release workflow from this branch.
-After the source candidate and new immutable tag are approved/published,
-update `pkgver`, `_pkgver`, `pkgrel`, source provenance comment and the real
-downloaded source archive SHA256 together. A possible new version is
-`7.2.8.sk1-1` / source tag `v7.2.8-sk1`, but that tag is not assumed to exist.
-No placeholder hash, SKIP or fabricated tag is used here.
+The source commit is published on `skos-ogc-7.2`. Package version
+`7.2.8.sk1-1` currently uses its immutable commit archive and downloaded SHA256
+`a2e902286bb915ccba511b3cc56fc7341f1bbc3cedbf77fca3e7c8dbaf61f0c6`.
+The source tag `v7.2.8-sk1` is created only after full packaging CI succeeds.
+Then the tag archive and actual checksum replace the commit archive, both CI
+workflows run again on the final packaging commit, and only then can package
+tag `v7.2.8-sk1-1` be published. See [release sequence](../ci/README.md).
+No placeholder hash, SKIP or fabricated tag is used.
 
 ## Active patches
 
@@ -141,13 +141,14 @@ extracted official bison/flex/bc/m4/libelf tools. Do not overwrite the productio
 environment's generated config: regenerate/review it under the actual Arch
 build toolchain, especially debug/BTF and compiler-capability differences.
 
-No full kernel package build, installation, boot, both-font runtime test or
-handheld hardware test is claimed. Before release, run a clean Arch
-makepkg prepare/full build, compare final config and module/header contents,
-then the CJK and device regression tests described above.
+These initial local checks do not establish a full kernel package build,
+installation, boot, both-font runtime test or handheld hardware validation.
+The exact-commit CI workflows separately establish clean Arch prepare/full
+makepkg and module/header package checks. Device and CJK runtime regression
+tests remain necessary even after CI succeeds.
 
-The existing release workflow still has a separate, serious safety issue:
-tag pushes/dispatch use a privileged self-hosted container with host `/usr`
-and `/opt` mounts and destructive host-directory cleanup. This audit does
-not execute or silently redesign it. Remove/isolate that cleanup and split
-compile from publication in a separately reviewed workflow change.
+The separately reviewed release workflow change removes privileged mode,
+host `/usr` and `/opt` mounts, and destructive host cleanup. Trusted branch
+builds now run full `makepkg` without publishing. A version tag must match the
+package metadata and the exact commit's latest successful prepare and full
+build branch runs; publication uses only that tag run's verified artifacts.

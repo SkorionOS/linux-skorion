@@ -2,17 +2,18 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 # Modified by SkorionOS team
 
-# Local 7.2.8 migration preparation: release version/tag/archive hash remain
-# the last published values until the reviewed source tag exists (PATCHES.md).
+# Validate the reviewed immutable source commit before publishing source/package
+# tags. The final release switches to the real source tag archive (ci/README.md).
 
 pkgbase=linux-skchos
-pkgver=7.2.1.sk2
-_pkgver=7.2.1-sk2
+pkgver=7.2.8.sk1
+_pkgver=7.2.8-sk1
+_srccommit=5fbd1d76fdd52d2f8da49fa7a56ea8bc344d9c96
 pkgrel=1
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
-url="https://github.com/SkorionOS/linux/commits/$_srctag"
+url="https://github.com/SkorionOS/linux/commit/$_srccommit"
 arch=(x86_64)
 license=(GPL2 OFL-1.1)
 makedepends=(
@@ -37,11 +38,11 @@ makedepends=(
 )
 options=('!strip')
 # _srcname=linux-skorionos
-_srcname=linux-$_pkgver
+_srcname=linux-$_srccommit
 # _srcname=patchwork-$_pkgver
 source=(
-  # Kernel: skos-ogc-7.2 = OGC/v7.2.1-ogc3 + skos deltas (tag = $_srctag)
-  "https://github.com/SkorionOS/linux/archive/refs/tags/v$_pkgver.tar.gz"
+  # Kernel: reviewed skos-ogc-7.2 = OGC/v7.2.8-ogc1 + preserved Skorion deltas.
+  "https://github.com/SkorionOS/linux/archive/$_srccommit.tar.gz"
   config  # the main kernel config file
   # config-bazzite dropped: Bazzite-6.17 leftover; useful bits moved to config-sk
   config-sk
@@ -73,7 +74,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('2188e71fff666f7017bbda2945002b3e4a2ad32e7d2f0904e7fa3533be5e01ad'
+sha256sums=('a2e902286bb915ccba511b3cc56fc7341f1bbc3cedbf77fca3e7c8dbaf61f0c6'
             '16850f73f6f082751612db08fc95f3cd06754f34968e8c4a5dba824ac4970779'
             '56540895e8ec67b3c819fdbb424958b89586060553d150b3c27984097b1ca61d'
             'f6236172b5a21a74e4ce248a3f7823c3e68a594b8be8a91d333e814b0ba53fdf'
