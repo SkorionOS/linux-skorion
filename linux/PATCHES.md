@@ -4,17 +4,26 @@ Reviewed 2026-10-03. Upstream is the actual stable release
 [v7.2.8-ogc1](https://github.com/OpenGamingCollective/linux/releases/tag/v7.2.8-ogc1),
 commit `f90d862923d8254f6df4b7ea81df68eef6d3a45e`.
 The reviewed Skorion source commit is
-`5fbd1d76fdd52d2f8da49fa7a56ea8bc344d9c96`, tree
-`fbd72baa407fbe4419752b940d6027e85309aebc`.
+`fafef94d8f17049b6f4d419f358a231868f03451`, tree
+`05dd9f1fe9bb4f3131a4bd5b2a721ee4cb4af141`.
 
-The source commit is published on `skos-ogc-7.2` and source tag
-[`v7.2.8-sk1`](https://github.com/SkorionOS/linux/tree/v7.2.8-sk1).
-Package version `7.2.8.sk1-1` uses that tag's real downloaded archive, SHA256
-`460b334ec39bb3ba3cab4bf8b50461854bd8b26d162c9b9e5e641d0442038997`.
-The dedicated prepare/config workflow is the pre-tag check. After it passes,
-package tag `v7.2.8-sk1-1` triggers the full kernel build and publication;
-ordinary branch pushes do not build the complete kernel.
-No placeholder hash, SKIP or fabricated tag is used.
+The source commit is published on `skos-ogc-7.2`. Package version
+`7.2.8.sk2-1` currently validates its immutable commit archive, SHA256
+`5d263b89d06258357e959f7457ad9758ce42c1ba9f40fa4a83c8bf9839f40090`.
+The dedicated prepare/config workflow is the pre-tag check. The real new
+source tag archive is pinned after that check, and its final packaging commit
+is checked before the package tag starts the full build. Existing tags are
+never moved. No placeholder hash or SKIP is used.
+
+### CEC build correction in sk2
+
+The sk1 tagged build exposed an OGC omission: the AMD Lilac DMI entry used
+`port_c_conns`, but its `{"Port C", NULL}` array was not defined. The sk2 source
+fix restores that one definition, making the entire CEC source file identical
+to the previous Skorion version while preserving the existing device mappings.
+A real Kbuild compilation of `cros-ec-cec.o` first reproduced the error and then
+passed with the one-line fix, `CONFIG_CEC_CROS_EC=m`, and objtool enabled.
+This is a source fix, not a new packaging patch or workflow change.
 
 ## Active patches
 
