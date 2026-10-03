@@ -7,13 +7,14 @@ The reviewed Skorion source commit is
 `fafef94d8f17049b6f4d419f358a231868f03451`, tree
 `05dd9f1fe9bb4f3131a4bd5b2a721ee4cb4af141`.
 
-The source commit is published on `skos-ogc-7.2`. Package version
-`7.2.8.sk2-1` currently validates its immutable commit archive, SHA256
-`5d263b89d06258357e959f7457ad9758ce42c1ba9f40fa4a83c8bf9839f40090`.
-The dedicated prepare/config workflow is the pre-tag check. The real new
-source tag archive is pinned after that check, and its final packaging commit
-is checked before the package tag starts the full build. Existing tags are
-never moved. No placeholder hash or SKIP is used.
+The source commit is published on `skos-ogc-7.2` and source tag
+[`v7.2.8-sk2`](https://github.com/SkorionOS/linux/tree/v7.2.8-sk2).
+Package version `7.2.8.sk2-1` uses its real tag archive, SHA256
+`8d5a9ef66d49a34eed2cdf218d14e7e47a7ce788a58810e2b906ebd90eda0488`.
+The dedicated prepare/config workflow is the pre-tag check; package tag
+`v7.2.8-sk2-1` then starts the full kernel build and publication. Ordinary
+branch pushes do not build the complete kernel. Existing tags are never moved.
+No placeholder hash or SKIP is used.
 
 ### CEC build correction in sk2
 
