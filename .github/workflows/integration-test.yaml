@@ -29,6 +29,8 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm bc cpio pahole python kmod git
+      - name: Test config verification
+        run: python -m unittest discover -s tests -v
       - name: Prepare sources
         shell: bash
         run: |

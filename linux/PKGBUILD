@@ -2,6 +2,9 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 # Modified by SkorionOS team
 
+# Local 7.2.8 migration preparation: release version/tag/archive hash remain
+# the last published values until the reviewed source tag exists (PATCHES.md).
+
 pkgbase=linux-skchos
 pkgver=7.2.1.sk2
 _pkgver=7.2.1-sk2
@@ -11,7 +14,7 @@ pkgdesc='Linux SkorionOS'
 _srctag=v${pkgver%.*}-${pkgver##*.}
 url="https://github.com/SkorionOS/linux/commits/$_srctag"
 arch=(x86_64)
-license=(GPL2)
+license=(GPL2 OFL-1.1)
 makedepends=(
   bc  
   cpio
@@ -42,20 +45,25 @@ source=(
   config  # the main kernel config file
   # config-bazzite dropped: Bazzite-6.17 leftover; useful bits moved to config-sk
   config-sk
+  check-config.py
+  cjktty-font-LICENSE
 
+  # gentoo-zh/cjktty-patches 52992b2: maintained 7.2 code + unchanged glyph data.
   0001-cjktty-7.2.patch
-  "0002-cjktty-32.patch::https://github.com/bigshans/cjktty-patches/raw/master/cjktty-add-cjk32x32-font-data.patch"
+  "0002-cjktty-32.patch::https://github.com/gentoo-zh/cjktty-patches/raw/52992b2fea75236df14d846dd21a2c581ea9d007/cjktty-add-cjk32x32-font-data.patch"
 
   0009-Input-Don-t-program-hw-debounce-for-soc_button_array.patch
   0010-Input-Don-t-send-fake-button-presses-to-wake-system.patch
 
   0012-PCI-PM-Add-MSI-MS-1T41-DMI-quirk-to-skip-forced-D0-i.patch
 
-  # Dropped (already in OGC/ogc-7.2.y / skos-ogc-7.2 tree):
+  # Source-integrated/retired patches are audited in PATCHES.md.
+  # Already in OGC/ogc-7.2.y or the Skorion source tree:
   # 0003 OXP HID, 0011 Legion Go, 0001-0004 MSI Claw HID,
-  # 0020 MMC RTS525A, 0025 Lenovo WMI, 0050 msi TDP range,
+  # 0020 MMC RTS525A, 0025 Lenovo WMI,
   # 0007/0021/0022 Ally HID
   # 0024-hdmi-vrr — now in OGC/ogc-7.2.y
+  # 0050 MSI 5 W minimum is a Skorion source delta, not an OGC default.
 )
 
 validpgpkeys=(
@@ -66,10 +74,12 @@ validpgpkeys=(
 )
 
 sha256sums=('2188e71fff666f7017bbda2945002b3e4a2ad32e7d2f0904e7fa3533be5e01ad'
-            'd15c56e1e2c1ecabb26e09a37cbfddafda03ea8440a54931c5468f1e5c6015cd'
-            '90956ca0d6a622222bf44733495d708a40efcd6fc5f5ee368aa1967d19ab7f9b'
-            '252c69ec48019660dce565c45e287626793f84939cec249d62644a11ea9842a8'
-            'c648ff21f0a5714743bbae85d6c6e1ed2bf961b6bca976d4c6b4c8d3f6b2739f'
+            '16850f73f6f082751612db08fc95f3cd06754f34968e8c4a5dba824ac4970779'
+            '56540895e8ec67b3c819fdbb424958b89586060553d150b3c27984097b1ca61d'
+            'f6236172b5a21a74e4ce248a3f7823c3e68a594b8be8a91d333e814b0ba53fdf'
+            'e42e01b6cbdb2c903a5db74f2a04a59d452c63de7e53cff3eb551ccd3a33ae79'
+            '9f4e207c949d63b077e2ce536c05fb4093bd5529ce66bf7214d642c32117d35c'
+            '561a5bfb155394648f3a97c17447c23f0eb2ce00bf441face5dbc66166ab7663'
             '9cb13c1040b149bd378a75fac3834e3802361816b5f8e51800358c440210b0e4'
             'fcd9c94156a3d99c0b2eab05f9edf12fe07a8cd826df1bf64347b4874f864684'
             '7ae72994bb9c7c477cc1931ce0507ec4be6af5ca4bb9159e1f91430a9d03cb4b')
@@ -80,8 +90,12 @@ export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EP
 export KCFLAGS="-DAMD_PRIVATE_COLOR"
 
 _make() {
-  test -s version
+  test -s version || return
   make KERNELRELEASE="$(<version)" "$@"
+}
+
+_verify_config() {
+  python ../check-config.py .config ../config-sk
 }
 
 prepare() {
@@ -107,7 +121,7 @@ prepare() {
 
     [[ $src = *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 < "../$src"
+    patch --batch --forward --fuzz=0 -Np1 < "../$src" || return
   done
 
   # # Fetch custom drivers automatically
@@ -175,8 +189,11 @@ prepare() {
 
   echo "Setting config..."
   cp ../config .config
-  _make olddefconfig
-  scripts/kconfig/merge_config.sh -m .config ../config-sk
+  _make olddefconfig || return
+  scripts/kconfig/merge_config.sh -m .config ../config-sk || return
+  # Fragment values must be normalized and checked before prepare-only CI exits.
+  _make olddefconfig || return
+  _verify_config || return
   diff -u ../config .config || :
 
   echo "Prepared $pkgbase version $(<version)"
@@ -186,7 +203,8 @@ build() {
   cd $_srcname
   # Workaround GCC 15 C23 const-correctness in tools/bpf libbpf
   sed -i 's/-Werror/-Werror -Wno-error=discarded-qualifiers/' tools/lib/bpf/Makefile
-  _make all
+  _make all || return
+  _verify_config
 }
 
 _package() {
@@ -225,9 +243,11 @@ _package() {
   ZSTD_CLEVEL=19 _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
     DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
-  # Install custom drivers configuration files
-  echo "Installing custom drivers configuration files..."
-  _make -C drivers/custom INSTALL_DIR="$pkgdir" install || echo "Warning: custom drivers install failed"
+  # OGC integrates handheld drivers into the regular kernel module tree.
+  # There is no drivers/custom install target in this source series.
+
+  install -Dm644 ../cjktty-font-LICENSE \
+    "$pkgdir/usr/share/licenses/$pkgbase/cjktty-font-LICENSE"
 
   # remove build links
   rm "$modulesdir"/build

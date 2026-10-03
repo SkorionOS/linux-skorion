@@ -1,19 +1,22 @@
 # sk-Chimera / SkorionOS specific config flags
 
-# Android
-CONFIG_ASHMEM=y
-CONFIG_ANDROID=y
+# Android Binder (ASHMEM, ANDROID and ANDROID_BINDER_IPC_SELFTEST are
+# no longer Kconfig symbols in this tree; do not silently request them).
 CONFIG_ANDROID_BINDER_IPC=y
 CONFIG_ANDROID_BINDERFS=y
 CONFIG_ANDROID_BINDER_DEVICES=""
 CONFIG_STAGING=y
-CONFIG_ANDROID_BINDER_IPC_SELFTEST=n
 
 # cjktty
 CONFIG_FONT_CJK_16x16=y
 CONFIG_FONT_CJK_32x32=y
 
 CONFIG_MODVERSIONS=y
+# Preserve the implementation selected in the released 7.2.1-sk2 kernel.
+CONFIG_GENKSYMS=y
+# CONFIG_GENDWARFKSYMS is not set
+CONFIG_BASIC_MODVERSIONS=y
+# CONFIG_EXTENDED_MODVERSIONS is not set
 
 # Handheld HID (OGC/ogc-7.2.y Kconfig symbols)
 CONFIG_HID_ASUS_ALLY=m

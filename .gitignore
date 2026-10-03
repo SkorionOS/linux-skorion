@@ -13,3 +13,4 @@ testbuild.sh
 *cjktty-6.*.patch
 *.mbx
 *.cover
+__pycache__/
