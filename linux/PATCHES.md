@@ -7,14 +7,13 @@ The reviewed Skorion source commit is
 `5fbd1d76fdd52d2f8da49fa7a56ea8bc344d9c96`, tree
 `fbd72baa407fbe4419752b940d6027e85309aebc`.
 
-The source commit is published on `skos-ogc-7.2`. Package version
-`7.2.8.sk1-1` currently uses its immutable commit archive and downloaded SHA256
-`a2e902286bb915ccba511b3cc56fc7341f1bbc3cedbf77fca3e7c8dbaf61f0c6`.
-Ordinary branch CI checks source preparation and configuration only. Once that
-passes, the approved source tag `v7.2.8-sk1` and its real archive checksum can be
-used by packaging; package tag `v7.2.8-sk1-1` then triggers the full kernel build.
-The dedicated prepare/config workflow is the pre-tag check; full compilation
-runs only after tagging (or an explicit manual dispatch).
+The source commit is published on `skos-ogc-7.2` and source tag
+[`v7.2.8-sk1`](https://github.com/SkorionOS/linux/tree/v7.2.8-sk1).
+Package version `7.2.8.sk1-1` uses that tag's real downloaded archive, SHA256
+`460b334ec39bb3ba3cab4bf8b50461854bd8b26d162c9b9e5e641d0442038997`.
+The dedicated prepare/config workflow is the pre-tag check. After it passes,
+package tag `v7.2.8-sk1-1` triggers the full kernel build and publication;
+ordinary branch pushes do not build the complete kernel.
 No placeholder hash, SKIP or fabricated tag is used.
 
 ## Active patches
