@@ -161,3 +161,10 @@ The release workflow removes privileged mode, host `/usr` and `/opt` mounts,
 and destructive host cleanup. Ordinary branch pushes run only prepare/config
 CI. Full kernel/package building remains triggered by tags or explicit manual
 dispatch, as in the original repository workflow.
+
+## OXP3 isolated experimental package
+
+The `oxp3-backport-7.2.8-sk2` test branch adds 15 provenance-preserving patches
+`0101` through `0115` after the five patches above. See [OXP3-BACKPORT.md](OXP3-BACKPORT.md)
+and [oxp3-series.json](oxp3-series.json) for exact source commits, adaptations,
+checksums, verification limits, and the production/deployment boundary.

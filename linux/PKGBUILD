@@ -5,14 +5,14 @@
 # Published source tag contains the reviewed CEC build fix and is pinned by
 # its real archive checksum. Ordinary CI prepares/tests; package tags build.
 
-pkgbase=linux-skchos
-pkgver=7.2.8.sk2
+pkgbase=linux-skchos-oxp3
+pkgver=7.2.8.sk2.oxp3
 _pkgver=7.2.8-sk2
 _srccommit=fafef94d8f17049b6f4d419f358a231868f03451
 pkgrel=1
-pkgdesc='Linux SkorionOS'
+pkgdesc='Linux SkorionOS OXP3 test kernel'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
-_srctag=v${pkgver%.*}-${pkgver##*.}
+_srctag=v${_pkgver}
 url="https://github.com/SkorionOS/linux/commits/$_srctag"
 arch=(x86_64)
 license=(GPL2 OFL-1.1)
@@ -58,6 +58,24 @@ source=(
 
   0012-PCI-PM-Add-MSI-MS-1T41-DMI-quirk-to-skip-forced-D0-i.patch
 
+  # Isolated OXP3 PR 13 series, with original authors/trailers retained.
+  # See OXP3-BACKPORT.md; keep existing workqueue and ring LED ABI.
+  0101-hid-hid-oxp-fix-default-m1-and-m2-key-mappings.patch
+  0102-hid-hid-oxp-validate-input-report-lengths-before-decoding.patch
+  0103-hid-hid-oxp-retain-fractional-brightness-when-reading-rgb-status.patch
+  0104-hid-hid-oxp-reject-invalid-gen2-rgb-status-values.patch
+  0105-hid-hid-oxp-fix-multicolor-led-intensity-scaling.patch
+  0106-hid-hid-oxp-serialize-complete-rgb-updates.patch
+  0107-hid-hid-oxp-select-brightness-policy-for-the-new-rgb-effect.patch
+  0108-hid-hid-oxp-stop-configuration-work-during-teardown.patch
+  0109-hid-hid-oxp-keep-configuration-state-per-hid-interface.patch
+  0110-hid-hid-oxp-handle-controller-reinitialization-across-suspend.patch
+  0111-hid-hid-oxp-group-declarations-and-protocol-definitions.patch
+  0112-hid-hid-oxp-support-three-page-button-maps-on-x2-controllers.patch
+  0113-hid-hid-oxp-represent-rgb-leds-with-a-common-array.patch
+  0114-hid-hid-oxp-add-gen3-joystick-ring-rgb-support.patch
+  0115-hid-hid-oxp-add-x2-auxiliary-rgb-zones.patch
+
   # Source-integrated/retired patches are audited in PATCHES.md.
   # Already in OGC/ogc-7.2.y or the Skorion source tree:
   # 0003 OXP HID, 0011 Legion Go, 0001-0004 MSI Claw HID,
@@ -83,7 +101,22 @@ sha256sums=('8d5a9ef66d49a34eed2cdf218d14e7e47a7ce788a58810e2b906ebd90eda0488'
             '561a5bfb155394648f3a97c17447c23f0eb2ce00bf441face5dbc66166ab7663'
             '9cb13c1040b149bd378a75fac3834e3802361816b5f8e51800358c440210b0e4'
             'fcd9c94156a3d99c0b2eab05f9edf12fe07a8cd826df1bf64347b4874f864684'
-            '7ae72994bb9c7c477cc1931ce0507ec4be6af5ca4bb9159e1f91430a9d03cb4b')
+            '7ae72994bb9c7c477cc1931ce0507ec4be6af5ca4bb9159e1f91430a9d03cb4b'
+            '2510e9d528a4e9d25ae4d2b0f1322a481f88ac8e3a8239d174622918279ecc14'
+            '0467559fb79da5b6a6aaea1c8dc060d3746f71b8a7497e89619d3e41f9c37d60'
+            '821cdbdfe3d8cddc825c0fd719709042713d00374b1562f53a3050b692a0f86d'
+            '38d664165eeeb0463f1b58c119075d00637ba2e33d9d1c3b04e9285f79dbdf1b'
+            'e469264d916ee74d099ff64821a427aa9a62ba3163a77144539aba0a74fc27a2'
+            'e3e20c0bcf29638c541ef5023aec6d17b690cba27258097f6a62136f6b74c83e'
+            '63b9cbb08e6dd41c9811cb15dac8392e4d1f0f3328d25b8a2ad262e9159af57a'
+            '4f7c26742aea2ecda7cad6ede79b3aa13cb953b73b78803890befc3e6982c6c5'
+            'f943cfe53ab8f34951ce7ab9dab47cd49662420699549ce271fc7ba3f0d304c3'
+            '86ee5f19f0f481cd7a97ea72ca0cda44b953b8345beb3dbc634ab2bc19729ae8'
+            '5d3fd55acbed12406cfd6983f1eaa61f00e9d6a5d84f9344706c1f55b87a5642'
+            '309a6c8ad252113021bafca50b2e3a29b14779724b42905fb462af2294016843'
+            '222c4264b3e796664a77a3a5658be28530a27beea4a05865615ddec99e15dcd8'
+            'd2bf405e4cb800756c7df13aec1c07ec3d75983715ef1e3e71357106957c56a8'
+            '372d08b82a30d9b4b093b888fec4e510e985b46bc7aaf9f148b7636cfb183bd7')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -181,7 +214,7 @@ prepare() {
 
   echo "Setting version..."
   # Insert e.g. -sk2 before pkgbase suffix (localversion* are concatenated in sort order)
-  echo "-${pkgver##*.}" > localversion.05-skver
+  echo "-${_pkgver#*-}" > localversion.05-skver
   echo "${pkgbase#linux}" > localversion.10-pkgname
   echo "-$pkgrel" > localversion.20-pkgrel
   make defconfig

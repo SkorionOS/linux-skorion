@@ -1,0 +1,107 @@
+[
+  {
+    "sha": "f61f96a50cc4573879644da77272aaa8bef59718",
+    "subject": "HID: hid-oxp: fix default M1 and M2 key mappings",
+    "filename": "0101-hid-hid-oxp-fix-default-m1-and-m2-key-mappings.patch",
+    "original_sha256": "873bc05692aab19a6de5f820e2539b85ff7bf4761d4b31490108f1621044fbe7",
+    "backport_sha256": "2510e9d528a4e9d25ae4d2b0f1322a481f88ac8e3a8239d174622918279ecc14"
+  },
+  {
+    "sha": "e8a843031f4f219c05d7c6015540f6cecae5bb47",
+    "subject": "HID: hid-oxp: validate input report lengths before decoding",
+    "filename": "0102-hid-hid-oxp-validate-input-report-lengths-before-decoding.patch",
+    "original_sha256": "e59ab3f9f4ace9b3bdd51fa3aa9db908daf82cf388b1aced7900b692f1e492a7",
+    "backport_sha256": "0467559fb79da5b6a6aaea1c8dc060d3746f71b8a7497e89619d3e41f9c37d60"
+  },
+  {
+    "sha": "14011c83492d14d7c102d3d1fbcec6cc530e99a3",
+    "subject": "HID: hid-oxp: retain fractional brightness when reading RGB status",
+    "filename": "0103-hid-hid-oxp-retain-fractional-brightness-when-reading-rgb-status.patch",
+    "original_sha256": "9fb465e0846a3fdd13f5268eb819c17067e6c194f580c8656c7b3609ae3bbc3b",
+    "backport_sha256": "821cdbdfe3d8cddc825c0fd719709042713d00374b1562f53a3050b692a0f86d"
+  },
+  {
+    "sha": "ac18fca602c8829184af094d8929b54e3f0e092c",
+    "subject": "HID: hid-oxp: reject invalid Gen2 RGB status values",
+    "filename": "0104-hid-hid-oxp-reject-invalid-gen2-rgb-status-values.patch",
+    "original_sha256": "7cdde59b1479b32b16cfd7af4c380d5ba5de9ad5de22c92a395c1625c6f315bf",
+    "backport_sha256": "38d664165eeeb0463f1b58c119075d00637ba2e33d9d1c3b04e9285f79dbdf1b"
+  },
+  {
+    "sha": "20808d92c80311e487ea045d1097bea436466045",
+    "subject": "HID: hid-oxp: fix multicolor LED intensity scaling",
+    "filename": "0105-hid-hid-oxp-fix-multicolor-led-intensity-scaling.patch",
+    "original_sha256": "415b76d6fc27490fafb4b8c52273bfd6fdf788bd57ecd66ff54644bca9aabb1d",
+    "backport_sha256": "e469264d916ee74d099ff64821a427aa9a62ba3163a77144539aba0a74fc27a2"
+  },
+  {
+    "sha": "395838c813b5109320db274c31461f34cacc6fb3",
+    "subject": "HID: hid-oxp: serialize complete RGB updates",
+    "filename": "0106-hid-hid-oxp-serialize-complete-rgb-updates.patch",
+    "original_sha256": "3cee8c800c484c73bc4c73a0d640cafcf4d58732d65c80273d95efaa5cd1c395",
+    "backport_sha256": "e3e20c0bcf29638c541ef5023aec6d17b690cba27258097f6a62136f6b74c83e"
+  },
+  {
+    "sha": "37c38a0d1c68fb62237a4d11d87d80af962b82cb",
+    "subject": "HID: hid-oxp: select brightness policy for the new RGB effect",
+    "filename": "0107-hid-hid-oxp-select-brightness-policy-for-the-new-rgb-effect.patch",
+    "original_sha256": "c5801c0548e51cb4431d306517883133d9ddbdace1a04c83867692f6187b4816",
+    "backport_sha256": "63b9cbb08e6dd41c9811cb15dac8392e4d1f0f3328d25b8a2ad262e9159af57a"
+  },
+  {
+    "sha": "781ece9e47ad8bbe73b61f1bf541986bdfeafd3d",
+    "subject": "HID: hid-oxp: stop configuration work during teardown",
+    "filename": "0108-hid-hid-oxp-stop-configuration-work-during-teardown.patch",
+    "original_sha256": "4f4edf3c76212aa08a1738e44dfbc8c39af61dcbd5394bdec2d7f634f332a697",
+    "backport_sha256": "4f7c26742aea2ecda7cad6ede79b3aa13cb953b73b78803890befc3e6982c6c5"
+  },
+  {
+    "sha": "f500340742c4bb019507f763b62d6d05cd228f9e",
+    "subject": "HID: hid-oxp: keep configuration state per HID interface",
+    "filename": "0109-hid-hid-oxp-keep-configuration-state-per-hid-interface.patch",
+    "original_sha256": "bec3777abc742d1803d7030afea16a449e9ffeca571fd71cc5f926bf442993de",
+    "backport_sha256": "f943cfe53ab8f34951ce7ab9dab47cd49662420699549ce271fc7ba3f0d304c3"
+  },
+  {
+    "sha": "b335bb8ac25ad4715c47f2b7dbd792cb321bc6e8",
+    "subject": "HID: hid-oxp: handle controller reinitialization across suspend",
+    "filename": "0110-hid-hid-oxp-handle-controller-reinitialization-across-suspend.patch",
+    "original_sha256": "e663a2266e7b34fea56164dbd640127e063c353f17506e3d7488bed02c444334",
+    "backport_sha256": "86ee5f19f0f481cd7a97ea72ca0cda44b953b8345beb3dbc634ab2bc19729ae8"
+  },
+  {
+    "sha": "e6e8e2e49ea6827d88ae25923925381bf221c78e",
+    "subject": "HID: hid-oxp: group declarations and protocol definitions",
+    "filename": "0111-hid-hid-oxp-group-declarations-and-protocol-definitions.patch",
+    "original_sha256": "50c7cd6ded8ac59519cb29e52cd5eed34a6053d4da1a879611b89da8086ad383",
+    "backport_sha256": "5d3fd55acbed12406cfd6983f1eaa61f00e9d6a5d84f9344706c1f55b87a5642"
+  },
+  {
+    "sha": "beb557d845dfb4435f3f0632aba1a43924eea0b1",
+    "subject": "HID: hid-oxp: support three-page button maps on X2 controllers",
+    "filename": "0112-hid-hid-oxp-support-three-page-button-maps-on-x2-controllers.patch",
+    "original_sha256": "af98f1dcc614a8ddda9f219c61cb91d20a85813280e47e986023271e549efcfd",
+    "backport_sha256": "309a6c8ad252113021bafca50b2e3a29b14779724b42905fb462af2294016843"
+  },
+  {
+    "sha": "7a80a0c57c5ee4f4c3d2f8307ab4f4e600c03c82",
+    "subject": "HID: hid-oxp: represent RGB LEDs with a common array",
+    "filename": "0113-hid-hid-oxp-represent-rgb-leds-with-a-common-array.patch",
+    "original_sha256": "bf7bae13617f97cb09b3880616a186509ae669d9325faca3e3be553c8aa2fde5",
+    "backport_sha256": "222c4264b3e796664a77a3a5658be28530a27beea4a05865615ddec99e15dcd8"
+  },
+  {
+    "sha": "99d6b67e58e05b072a41a7eeccf797654b29d2b9",
+    "subject": "HID: hid-oxp: add Gen3 joystick ring RGB support",
+    "filename": "0114-hid-hid-oxp-add-gen3-joystick-ring-rgb-support.patch",
+    "original_sha256": "928e731722e33ef382c95538071104e4aba29fc99874b0eda170907096076fd4",
+    "backport_sha256": "d2bf405e4cb800756c7df13aec1c07ec3d75983715ef1e3e71357106957c56a8"
+  },
+  {
+    "sha": "4396c18eef297543889681a77283c13e047dfe22",
+    "subject": "HID: hid-oxp: add X2 auxiliary RGB zones",
+    "filename": "0115-hid-hid-oxp-add-x2-auxiliary-rgb-zones.patch",
+    "original_sha256": "7bf35e06ded66dfda69f0093e4160b9d3f7e579658a677b6990c3463c6c58842",
+    "backport_sha256": "372d08b82a30d9b4b093b888fec4e510e985b46bc7aaf9f148b7636cfb183bd7"
+  }
+]
