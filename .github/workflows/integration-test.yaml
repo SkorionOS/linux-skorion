@@ -4,13 +4,18 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      atx:
+        description: 'Run the non-release integration test on ATX'
+        type: boolean
+        default: false
 
 env:
   BUILDDIR: "/tmp/build"
 
 jobs:
   test-integration:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.atx && fromJSON('["self-hosted", "Linux", "X64", "atx"]') || fromJSON('["ubuntu-latest"]') }}
 
     container: archlinux:base-devel
 
