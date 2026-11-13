@@ -22,8 +22,8 @@ def recipe_values():
 class Oxp3BackportTests(unittest.TestCase):
     def test_release_version_and_source_are_pinned(self):
         values, _, _ = recipe_values()
-        self.assertEqual(values, ['linux-skchos', '7.2.8.sk2', '7.2.8-sk2', '2',
-                                  'fafef94d8f17049b6f4d419f358a231868f03451'])
+        self.assertEqual(values, ['linux-skchos', '7.3.4.sk1', '7.3.4-sk1', '1',
+                                  '0ef21e26cc29c53e105dcb6a881262583bb23935'])
 
     def test_contiguous_queue_provenance_and_checksums(self):
         series = json.loads((LINUX / 'oxp3-series.json').read_text())
@@ -45,7 +45,7 @@ class Oxp3BackportTests(unittest.TestCase):
                 self.assertIn('From: Andrei Aldea <andrei1998@gmail.com>', text)
                 self.assertIn('Signed-off-by: Andrei Aldea <andrei1998@gmail.com>', text)
                 self.assertIn('Upstream-commit: ' + entry['sha'], text)
-                self.assertNotIn('system_dfl_wq', text)
+                self.assertNotIn('system_wq', text)
                 self.assertNotIn('oxp:rgb:joystick_rings', text)
 
     def test_oxp_module_and_versioning_are_required(self):

@@ -19,7 +19,7 @@ Signed-off-by: Andrei Aldea <andrei1998@gmail.com>
 
 Upstream-commit: beb557d845dfb4435f3f0632aba1a43924eea0b1
 Link: https://github.com/Grippy98/linux-unstable/commit/beb557d845dfb4435f3f0632aba1a43924eea0b1
-Backport-note: SKOS 7.2.8-sk2; preserve system_wq and the existing
+Backport-note: SKOS 7.3.4-sk1; preserve system_dfl_wq and the existing
  go:rgb:joystick_rings ABI where present.
 
 ---

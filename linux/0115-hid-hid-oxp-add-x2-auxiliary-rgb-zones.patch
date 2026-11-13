@@ -26,7 +26,7 @@ Signed-off-by: Andrei Aldea <andrei1998@gmail.com>
 
 Upstream-commit: 4396c18eef297543889681a77283c13e047dfe22
 Link: https://github.com/Grippy98/linux-unstable/commit/4396c18eef297543889681a77283c13e047dfe22
-Backport-note: SKOS 7.2.8-sk2; preserve system_wq and the existing
+Backport-note: SKOS 7.3.4-sk1; preserve system_dfl_wq and the existing
  go:rgb:joystick_rings ABI where present.
 
 ---
@@ -533,7 +533,7 @@ index 9a46602238aa37..757cef88e6c626 100644
 +	}
  
 -	led_cdev->brightness = brightness;
- 	mod_delayed_work(system_wq, &led->work, msecs_to_jiffies(50));
+ 	mod_delayed_work(system_dfl_wq, &led->work, msecs_to_jiffies(50));
  }
  
 +static ssize_t oxp_rgb_aux_effect_store(struct device *dev,
@@ -558,7 +558,7 @@ index 9a46602238aa37..757cef88e6c626 100644
 +	}
 +
 +	if (!READ_ONCE(cfg->suspended) && !READ_ONCE(cfg->removing))
-+		mod_delayed_work(system_wq, &led->work,
++		mod_delayed_work(system_dfl_wq, &led->work,
 +				 msecs_to_jiffies(50));
 +
 +	return count;

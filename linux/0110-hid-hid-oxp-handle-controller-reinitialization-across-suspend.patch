@@ -26,7 +26,7 @@ Signed-off-by: Andrei Aldea <andrei1998@gmail.com>
 
 Upstream-commit: b335bb8ac25ad4715c47f2b7dbd792cb321bc6e8
 Link: https://github.com/Grippy98/linux-unstable/commit/b335bb8ac25ad4715c47f2b7dbd792cb321bc6e8
-Backport-note: SKOS 7.2.8-sk2; preserve system_wq and the existing
+Backport-note: SKOS 7.3.4-sk1; preserve system_dfl_wq and the existing
  go:rgb:joystick_rings ABI where present.
 
 ---
@@ -114,7 +114,7 @@ index 7b366878fcb3e6..e26e6a98294fee 100644
  		if (READ_ONCE(cfg->gen2_work_initialized) &&
 +		    !READ_ONCE(cfg->suspended) &&
  		    !READ_ONCE(cfg->removing))
- 			mod_delayed_work(system_wq, &cfg->oxp_mcu_init,
+ 			mod_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init,
  					 msecs_to_jiffies(50));
 @@ -489,6 +512,7 @@ static int mcu_property_out(struct oxp_hid_cfg *cfg, u8 *header, size_t header_s
  			    size_t data_size, u8 *footer, size_t footer_size)
@@ -182,7 +182,7 @@ index 7b366878fcb3e6..e26e6a98294fee 100644
  	}
 -	if (!READ_ONCE(cfg->removing))
 +	if (!READ_ONCE(cfg->suspended) && !READ_ONCE(cfg->removing))
- 		mod_delayed_work(system_wq, &cfg->oxp_btn_queue,
+ 		mod_delayed_work(system_dfl_wq, &cfg->oxp_btn_queue,
  				 msecs_to_jiffies(50));
  	return count;
 @@ -1413,7 +1456,7 @@ static void oxp_rgb_queue_fn(struct work_struct *work)
@@ -267,7 +267,7 @@ index 7b366878fcb3e6..e26e6a98294fee 100644
 +		return 0;
 +
 +	/* Allow the controller MCU to finish rebooting before restoring state. */
-+	queue_delayed_work(system_wq, &cfg->oxp_mcu_init,
++	queue_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init,
 +			   msecs_to_jiffies(6500));
 +
 +	return 0;

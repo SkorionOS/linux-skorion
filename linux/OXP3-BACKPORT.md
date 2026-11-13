@@ -1,3 +1,10 @@
+## 7.3.4 refresh
+
+All 15 patches remain in their original order. Patch payloads are adapted to the
+7.3 `system_dfl_wq` name and the upstream synchronous teardown context.
+`oxp3-series.json` records new backport hashes while preserving original hashes
+and source commit identities. Existing joystick-ring LED names remain unchanged.
+
 # OXP3 backport, package release 7.2.8.sk2-2
 
 This update follows the normal `linux-skchos` / `linux-skchos-headers` package

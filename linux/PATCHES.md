@@ -1,3 +1,52 @@
+# OGC 7.3.4 update (2026-11-13)
+
+Base: OGC release `v7.3.4-ogc3`, commit
+`990773d4fa6a34678b19000a20c605df9b9d57e4`.
+Published Skorion source `v7.3.4-sk1`: `0ef21e26cc29c53e105dcb6a881262583bb23935`.
+Source tag archive SHA-256:
+`e590c8b8f5a37211949c9cbde133681c166d7594da505d34a9dd4757a56e6d15`.
+The existing source and packaging branch names are retained; no old tag is moved.
+
+60 of the previous 62 source commits are replayed in order. Two are retired:
+- `fafef94d`: OGC now defines `port_c_conns`; retaining the fix duplicates it.
+- `968b8704`: upstream now prepares devices and preallocates the image before
+  freezing kernel threads, with separate Complete/Cleanup/Thaw paths. The old
+  cleanup-order fix is no longer applicable and must not restore the old sequence.
+
+Conflict adaptations preserve the downstream behavior while retaining new APIs:
+- LOW_LATENCY_FLIP is retained without resurrecting removed passive-VRR fields.
+- Deferred overdrive taint uses the new PPT limit structures/function names.
+- Brightness-curve override and eDP mode restriction move to their split AMD files.
+- Frozen-device thaw handling preserves upstream's new debug override condition.
+
+Packaging adaptations:
+- CJKTTY uses upstream's exact 7.3.4 code patch at commit
+  `28d4470b38d3fd774dc33e38552d25c3407dd0b5`. Both font sizes remain enabled.
+  The 16x16 font is now a separate pinned upstream input; the existing pinned
+  32x32 data and installed font license are retained.
+- MSI MS-1T41 PCI initialization quirk wraps the new power-up sequence with the
+  same DMI scope. This is retained downstream behavior, not an upstream fix.
+- All 15 OXP3 backport commits remain, with author/trailer provenance. Workqueue
+  contexts use upstream's `system_dfl_wq`, and teardown adapts to the existing
+  synchronous cancellation calls. The joystick-ring LED ABI is unchanged.
+- Base config and config-sk are retained; actual olddefconfig/merge/olddefconfig
+  validates all 23 requested settings. Generated Debian-toolchain config is not
+  substituted for the production Arch config.
+
+Runner routing:
+- Release build uses `[self-hosted, Linux, X64, atx]`.
+- Ordinary integration tests remain GitHub hosted. Manual `atx=true` selects ATX
+  for the same non-release preparation test. No formal build is used as a test.
+
+Validation limits: object/config checks are not a full package, boot, or hardware
+validation. Existing downstream brightness-curve disable policy intentionally
+conflicts with upstream's new brightness-conversion KUnit expectations;
+production config leaves KUNIT disabled. Do not claim those KUnit tests pass.
+
+---
+
+## Historical 7.2 audit
+
 # Extra patch audit: OGC 7.2.8
 
 Reviewed 2026-10-03. Upstream is the actual stable release
@@ -169,3 +218,18 @@ The normal `7.2-ogc` package line adds 15 provenance-preserving patches
 patches/config remain unchanged; the package release increments from 1 to 2.
 See [OXP3-BACKPORT.md](OXP3-BACKPORT.md) and [oxp3-series.json](oxp3-series.json)
 for exact source commits, adaptations, checksums and hardware-validation limits.
+
+### 7.3 local validation results
+
+Using Debian GCC 14.2 with official isolated build prerequisites:
+- All 23 requested config settings pass real Kconfig normalization.
+- All 16 packaging/config/routing unit tests pass.
+- Full AMDGPU composite object links successfully, covering the rebased display,
+  memory-management, power-management, and recovery changes.
+- OXP HID, PCI core, GPIO/soc power buttons, CEC, DRM core, hibernation, VT,
+  framebuffer console, and both CJK font objects compile successfully.
+- Old patch queue was rechecked with zero fuzz; CJK and PCI context changes were
+  repaired explicitly rather than hidden by allowing fuzzy application.
+
+No boot/hardware tests were performed. Arch makepkg/integration and actual ATX
+runner results must be recorded separately, not inferred from local checks.

@@ -6,10 +6,10 @@
 # its real archive checksum. Ordinary CI prepares/tests; package tags build.
 
 pkgbase=linux-skchos
-pkgver=7.2.8.sk2
-_pkgver=7.2.8-sk2
-_srccommit=fafef94d8f17049b6f4d419f358a231868f03451
-pkgrel=2
+pkgver=7.3.4.sk1
+_pkgver=7.3.4-sk1
+_srccommit=0ef21e26cc29c53e105dcb6a881262583bb23935
+pkgrel=1
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
@@ -41,7 +41,7 @@ options=('!strip')
 _srcname=linux-$_pkgver
 # _srcname=patchwork-$_pkgver
 source=(
-  # Kernel: reviewed skos-ogc-7.2 = OGC/v7.2.8-ogc1 + preserved Skorion deltas.
+  # Kernel: reviewed skos-ogc-7.2 = OGC/v7.3.4-ogc3 + preserved Skorion deltas.
   "https://github.com/SkorionOS/linux/archive/refs/tags/v$_pkgver.tar.gz"
   config  # the main kernel config file
   # config-bazzite dropped: Bazzite-6.17 leftover; useful bits moved to config-sk
@@ -49,8 +49,9 @@ source=(
   check-config.py
   cjktty-font-LICENSE
 
-  # gentoo-zh/cjktty-patches 52992b2: maintained 7.2 code + unchanged glyph data.
-  0001-cjktty-7.2.patch
+  # gentoo-zh: 7.3.4 code with separately pinned 16x16 and 32x32 fonts.
+  0001-cjktty-7.3.4.patch
+  "0002-cjktty-16.patch::https://raw.githubusercontent.com/gentoo-zh/cjktty-patches/28d4470b38d3fd774dc33e38552d25c3407dd0b5/cjktty-font-unifont-15.1.04.patch"
   "0002-cjktty-32.patch::https://github.com/gentoo-zh/cjktty-patches/raw/52992b2fea75236df14d846dd21a2c581ea9d007/cjktty-add-cjk32x32-font-data.patch"
 
   0009-Input-Don-t-program-hw-debounce-for-soc_button_array.patch
@@ -92,31 +93,32 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('8d5a9ef66d49a34eed2cdf218d14e7e47a7ce788a58810e2b906ebd90eda0488'
+sha256sums=('e590c8b8f5a37211949c9cbde133681c166d7594da505d34a9dd4757a56e6d15'
             '16850f73f6f082751612db08fc95f3cd06754f34968e8c4a5dba824ac4970779'
             '56540895e8ec67b3c819fdbb424958b89586060553d150b3c27984097b1ca61d'
             'f6236172b5a21a74e4ce248a3f7823c3e68a594b8be8a91d333e814b0ba53fdf'
             'e42e01b6cbdb2c903a5db74f2a04a59d452c63de7e53cff3eb551ccd3a33ae79'
-            '9f4e207c949d63b077e2ce536c05fb4093bd5529ce66bf7214d642c32117d35c'
+            '8d78569fa5a1a24506de523ec37da2288b3ad1d2b8541ca1fa39657dcc3b1b9d'
+            '21ad81a93fb99c61aa2cb0b57c9f7ac7e00b6bd9108626e5f0733175538c43b9'
             '561a5bfb155394648f3a97c17447c23f0eb2ce00bf441face5dbc66166ab7663'
             '9cb13c1040b149bd378a75fac3834e3802361816b5f8e51800358c440210b0e4'
             'fcd9c94156a3d99c0b2eab05f9edf12fe07a8cd826df1bf64347b4874f864684'
-            '7ae72994bb9c7c477cc1931ce0507ec4be6af5ca4bb9159e1f91430a9d03cb4b'
-            '2510e9d528a4e9d25ae4d2b0f1322a481f88ac8e3a8239d174622918279ecc14'
-            '0467559fb79da5b6a6aaea1c8dc060d3746f71b8a7497e89619d3e41f9c37d60'
-            '821cdbdfe3d8cddc825c0fd719709042713d00374b1562f53a3050b692a0f86d'
-            '38d664165eeeb0463f1b58c119075d00637ba2e33d9d1c3b04e9285f79dbdf1b'
-            'e469264d916ee74d099ff64821a427aa9a62ba3163a77144539aba0a74fc27a2'
-            'e3e20c0bcf29638c541ef5023aec6d17b690cba27258097f6a62136f6b74c83e'
-            '63b9cbb08e6dd41c9811cb15dac8392e4d1f0f3328d25b8a2ad262e9159af57a'
-            '4f7c26742aea2ecda7cad6ede79b3aa13cb953b73b78803890befc3e6982c6c5'
-            'f943cfe53ab8f34951ce7ab9dab47cd49662420699549ce271fc7ba3f0d304c3'
-            '86ee5f19f0f481cd7a97ea72ca0cda44b953b8345beb3dbc634ab2bc19729ae8'
-            '5d3fd55acbed12406cfd6983f1eaa61f00e9d6a5d84f9344706c1f55b87a5642'
-            '309a6c8ad252113021bafca50b2e3a29b14779724b42905fb462af2294016843'
-            '222c4264b3e796664a77a3a5658be28530a27beea4a05865615ddec99e15dcd8'
-            'd2bf405e4cb800756c7df13aec1c07ec3d75983715ef1e3e71357106957c56a8'
-            '372d08b82a30d9b4b093b888fec4e510e985b46bc7aaf9f148b7636cfb183bd7')
+            'c63c3c7eaf017f5461ff6e034788c27307c6201438ca9799eff2586be240982e'
+            '795c854f5369dc300ee577a1de4b5576cd22be441ce0e79d18c476ae8e747b0e'
+            '1132fb68540a8dcf8a95b4ee02957ee612fd73ac025aedbb6cfd6dcae3e6de68'
+            '99f377fd4b2d9430527e7d36bfca37c86a15995b5b64273e8bcc73f9b43dd958'
+            '3db6493a13f7db975a870dfa87f37742b0ef2a9ca563d3b9c3aa5c4f867a491e'
+            '1f38beeb6924e1a49b2f74306d9027a594ff73609662578604bf6efaaba56e31'
+            '2caaed166bc918a320ae66c48b4d27ab0ddd6f1206460f3541629227ad7b050e'
+            'a1ce52255f9e58f5d31a58511cc593e94e8c6233042f65a548342d90eafa5678'
+            '232cc57951d0b1ff19ba30b63f8f7a42902383cc3c3d3355ab01e89f93c67038'
+            '055d50b79137a421fdffa11ec8ff46317df915c4684bd8b5b7e99fe20179100c'
+            '65d8937951bf87e3c636eac812f432c7a5e7c17e30238aa7d0b4b6b66d0c3e71'
+            '3e10008a97ef9d240d63e48afb9ed09771a2f2387ee4491335f3a56c1b627294'
+            'f148f10d4fa47f0b87e080bfb7c642018bae34307bb4903a007ec8f58ae2535b'
+            '63d34e9cfc978d3fea4aae604ae9496208d62863002a79720e30ff0653ddcf4a'
+            '097ab93631cc944c6266d74a0b09d33dd427765f31ca9f3a9f907a954f7dc788'
+            '3964b2f0821bc12ba6bdb09a74780ad999e2f01f2652250a692bded2c3fe5b99')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase

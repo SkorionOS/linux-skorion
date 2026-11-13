@@ -3,15 +3,15 @@ From: Zhouwang Huang <honjow311@gmail.com>
 Date: Wed, 5 Aug 2026 10:47:25 +0800
 Subject: [PATCH] PCI/PM: Add MSI MS-1T41 DMI quirk to skip forced D0 init
 
----
- drivers/pci/pci.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+Adapted to Linux 7.3 PCI power-state initialization while preserving
+the original MSI MS-1T41 scope and skip behavior.
 
+---
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 0ee01d99e3275..812153807752b 100644
+index f85256413..42b70462a 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -3119,6 +3119,17 @@ void pci_pm_power_up_and_verify_state(struct pci_dev *pci_dev)
+@@ -3194,6 +3194,17 @@ void pci_pm_power_up_and_verify_state(struct pci_dev *pci_dev)
  	pci_update_current_state(pci_dev, PCI_D0);
  }
  
@@ -29,16 +29,29 @@ index 0ee01d99e3275..812153807752b 100644
  /**
   * pci_pm_init - Initialize PM functions of given PCI device
   * @dev: PCI device to handle.
-@@ -3187,7 +3198,8 @@ void pci_pm_init(struct pci_dev *dev)
+@@ -3262,15 +3273,17 @@ void pci_pm_init(struct pci_dev *dev)
  	}
  
  poweron:
--	pci_pm_power_up_and_verify_state(dev);
-+	if (!dmi_check_system(pci_pm_skip_d0_init))
-+		pci_pm_power_up_and_verify_state(dev);
+-	pci_update_current_state(dev, PCI_UNKNOWN);
+-	if (dev->current_state == PCI_D0) {
+-		/* No need for full power-up, just sync-up platform state */
+-		platform_pci_set_power_state(dev, PCI_D0);
+-	} else {
+-		/* Power up the device and restore BARs if necessary */
+-		pci_set_full_power_state(dev, false);
++	if (!dmi_check_system(pci_pm_skip_d0_init)) {
++		pci_update_current_state(dev, PCI_UNKNOWN);
++		if (dev->current_state == PCI_D0) {
++			/* No need for full power-up, just sync-up platform state */
++			platform_pci_set_power_state(dev, PCI_D0);
++		} else {
++			/* Power up the device and restore BARs if necessary */
++			pci_set_full_power_state(dev, false);
++		}
++		pci_update_current_state(dev, PCI_D0);
+ 	}
+-	pci_update_current_state(dev, PCI_D0);
  	pm_runtime_forbid(&dev->dev);
  
  	/*
--- 
-2.51.2
-

@@ -18,7 +18,7 @@ Signed-off-by: Andrei Aldea <andrei1998@gmail.com>
 
 Upstream-commit: f500340742c4bb019507f763b62d6d05cd228f9e
 Link: https://github.com/Grippy98/linux-unstable/commit/f500340742c4bb019507f763b62d6d05cd228f9e
-Backport-note: SKOS 7.2.8-sk2; preserve system_wq and the existing
+Backport-note: SKOS 7.3.4-sk1; preserve system_dfl_wq and the existing
  go:rgb:joystick_rings ABI where present.
 
 ---
@@ -156,10 +156,10 @@ index eef57c33851366..7b366878fcb3e6 100644
  	if (data[3] == OXP_EFFECT_MONO_TRUE) {
 -		if (READ_ONCE(drvdata.gen2_work_initialized) &&
 -		    !READ_ONCE(drvdata.removing))
--			mod_delayed_work(system_wq, &drvdata.oxp_mcu_init,
+-			mod_delayed_work(system_dfl_wq, &drvdata.oxp_mcu_init,
 +		if (READ_ONCE(cfg->gen2_work_initialized) &&
 +		    !READ_ONCE(cfg->removing))
-+			mod_delayed_work(system_wq, &cfg->oxp_mcu_init,
++			mod_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init,
  					 msecs_to_jiffies(50));
  		return 0;
  	}
@@ -502,9 +502,9 @@ index eef57c33851366..7b366878fcb3e6 100644
  		return -EINVAL;
  	}
 -	if (!READ_ONCE(drvdata.removing))
--		mod_delayed_work(system_wq, &drvdata.oxp_btn_queue,
+-		mod_delayed_work(system_dfl_wq, &drvdata.oxp_btn_queue,
 +	if (!READ_ONCE(cfg->removing))
-+		mod_delayed_work(system_wq, &cfg->oxp_btn_queue,
++		mod_delayed_work(system_dfl_wq, &cfg->oxp_btn_queue,
  				 msecs_to_jiffies(50));
  	return count;
  }
@@ -993,8 +993,8 @@ index eef57c33851366..7b366878fcb3e6 100644
  		return;
  
  	led_cdev->brightness = brightness;
--	mod_delayed_work(system_wq, &drvdata.oxp_rgb_queue, msecs_to_jiffies(50));
-+	mod_delayed_work(system_wq, &cfg->oxp_rgb_queue, msecs_to_jiffies(50));
+-	mod_delayed_work(system_dfl_wq, &drvdata.oxp_rgb_queue, msecs_to_jiffies(50));
++	mod_delayed_work(system_dfl_wq, &cfg->oxp_rgb_queue, msecs_to_jiffies(50));
  }
  
  static struct attribute *oxp_rgb_attrs[] = {
@@ -1149,10 +1149,10 @@ index eef57c33851366..7b366878fcb3e6 100644
  
 -	INIT_DELAYED_WORK(&drvdata.oxp_mcu_init, oxp_mcu_init_fn);
 -	WRITE_ONCE(drvdata.gen2_work_initialized, true);
--	mod_delayed_work(system_wq, &drvdata.oxp_mcu_init, msecs_to_jiffies(50));
+-	mod_delayed_work(system_dfl_wq, &drvdata.oxp_mcu_init, msecs_to_jiffies(50));
 +	INIT_DELAYED_WORK(&cfg->oxp_mcu_init, oxp_mcu_init_fn);
 +	WRITE_ONCE(cfg->gen2_work_initialized, true);
-+	mod_delayed_work(system_wq, &cfg->oxp_mcu_init, msecs_to_jiffies(50));
++	mod_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init, msecs_to_jiffies(50));
  
  	ret = devm_device_add_group(&hdev->dev, &oxp_cfg_attrs_group);
  	if (ret) {

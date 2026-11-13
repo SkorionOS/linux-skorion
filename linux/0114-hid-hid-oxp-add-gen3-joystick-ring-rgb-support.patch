@@ -22,7 +22,7 @@ Signed-off-by: Andrei Aldea <andrei1998@gmail.com>
 
 Upstream-commit: 99d6b67e58e05b072a41a7eeccf797654b29d2b9
 Link: https://github.com/Grippy98/linux-unstable/commit/99d6b67e58e05b072a41a7eeccf797654b29d2b9
-Backport-note: SKOS 7.2.8-sk2; preserve system_wq and the existing
+Backport-note: SKOS 7.3.4-sk1; preserve system_dfl_wq and the existing
  go:rgb:joystick_rings ABI where present.
 
 ---
@@ -256,7 +256,7 @@ index 55f8b4773e3341..9a46602238aa37 100644
 -		if (READ_ONCE(cfg->gen2_work_initialized) &&
 -		    !READ_ONCE(cfg->suspended) &&
 -		    !READ_ONCE(cfg->removing))
--			mod_delayed_work(system_wq, &cfg->oxp_mcu_init,
+-			mod_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init,
 -					 msecs_to_jiffies(50));
 -		return 0;
 -	}
@@ -267,7 +267,7 @@ index 55f8b4773e3341..9a46602238aa37 100644
 +	/* An unsolicited event is sent after the MCU resets on resume. */
 +	if (READ_ONCE(cfg->gen2_work_initialized) &&
 +	    !READ_ONCE(cfg->suspended) && !READ_ONCE(cfg->removing))
-+		mod_delayed_work(system_wq, &cfg->oxp_mcu_init,
++		mod_delayed_work(system_dfl_wq, &cfg->oxp_mcu_init,
 +				 msecs_to_jiffies(50));
 +
 +	return true;
