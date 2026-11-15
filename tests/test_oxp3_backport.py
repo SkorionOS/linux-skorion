@@ -22,8 +22,8 @@ def recipe_values():
 class Oxp3BackportTests(unittest.TestCase):
     def test_release_version_and_source_are_pinned(self):
         values, _, _ = recipe_values()
-        self.assertEqual(values, ['linux-skchos', '7.3.4.sk1', '7.3.4-sk1', '1',
-                                  '0ef21e26cc29c53e105dcb6a881262583bb23935'])
+        self.assertEqual(values, ['linux-skchos', '7.3.4.sk1', '7.3.4-sk1', '2',
+                                  '15c27d64565a3c0ba271b405197960bf10dd89f5'])
 
     def test_contiguous_queue_provenance_and_checksums(self):
         series = json.loads((LINUX / 'oxp3-series.json').read_text())

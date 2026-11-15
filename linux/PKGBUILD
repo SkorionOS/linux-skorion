@@ -2,18 +2,18 @@
 # Maintainer: Joaquín I. Aramendía (samsagax) <samsagaxg@gmail.com>
 # Modified by SkorionOS team
 
-# Published source tag contains the reviewed CEC build fix and is pinned by
-# its real archive checksum. Ordinary CI prepares/tests; package tags build.
+# Pin the merged OneXPlayer 3 fan quirk by immutable source commit and checksum.
+# Keep pkgver; increment only pkgrel for this downstream rebuild.
 
 pkgbase=linux-skchos
 pkgver=7.3.4.sk1
 _pkgver=7.3.4-sk1
-_srccommit=0ef21e26cc29c53e105dcb6a881262583bb23935
-pkgrel=1
+_srccommit=15c27d64565a3c0ba271b405197960bf10dd89f5
+pkgrel=2
 pkgdesc='Linux SkorionOS'
 # _srctag=v$(echo $pkgver | sed -E 's#.sk.#-sk-#')
 _srctag=v${pkgver%.*}-${pkgver##*.}
-url="https://github.com/SkorionOS/linux/commits/$_srctag"
+url="https://github.com/SkorionOS/linux/commit/$_srccommit"
 arch=(x86_64)
 license=(GPL2 OFL-1.1)
 makedepends=(
@@ -38,11 +38,11 @@ makedepends=(
 )
 options=('!strip')
 # _srcname=linux-skorionos
-_srcname=linux-$_pkgver
+_srcname=linux-$_srccommit
 # _srcname=patchwork-$_pkgver
 source=(
   # Kernel: reviewed skos-ogc-7.2 = OGC/v7.3.4-ogc3 + preserved Skorion deltas.
-  "https://github.com/SkorionOS/linux/archive/refs/tags/v$_pkgver.tar.gz"
+  "https://github.com/SkorionOS/linux/archive/$_srccommit.tar.gz"
   config  # the main kernel config file
   # config-bazzite dropped: Bazzite-6.17 leftover; useful bits moved to config-sk
   config-sk
@@ -93,7 +93,7 @@ validpgpkeys=(
   C7E7849466FE2358343588377258734B41C31549  # David Runge <dvzrv@archlinux.org>
 )
 
-sha256sums=('e590c8b8f5a37211949c9cbde133681c166d7594da505d34a9dd4757a56e6d15'
+sha256sums=('7361b4d24e6feaf726c5ae393f61d45978259ae4ac918db4b02623cc492a3df4'
             '16850f73f6f082751612db08fc95f3cd06754f34968e8c4a5dba824ac4970779'
             '56540895e8ec67b3c819fdbb424958b89586060553d150b3c27984097b1ca61d'
             'f6236172b5a21a74e4ce248a3f7823c3e68a594b8be8a91d333e814b0ba53fdf'
